@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOM BACA! ADVENTURE</title>
+<style>
+:root{--navy:#183b67;--blue:#287bd2;--gold:#ffcf45;--cream:#fff6dc;--green:#4aaf78;--pink:#f28eb2;--shadow:0 8px 0 rgba(28,54,83,.18),0 14px 28px rgba(22,45,70,.18)}
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS",system-ui,sans-serif;color:#173452;background:#8bd5f5;overflow-x:hidden}
+button,input{font:inherit}button{cursor:pointer;border:0}
+#app{min-height:100vh;background:linear-gradient(#74c9f5 0%,#c7edff 45%,#83c97d 100%);position:relative;overflow:hidden}
+.sky{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 18%,#fff9 0 4px,transparent 5px),radial-gradient(circle at 85% 23%,#fff9 0 5px,transparent 6px);opacity:.8}
+.cloud{position:fixed;background:#fff9;border-radius:100px;width:180px;height:45px;filter:blur(1px);pointer-events:none;animation:drift 28s linear infinite}.cloud:before,.cloud:after{content:"";position:absolute;background:inherit;border-radius:50%;width:75px;height:75px;top:-34px;left:28px}.cloud:after{width:55px;height:55px;left:92px;top:-20px}@keyframes drift{from{transform:translateX(-220px)}to{transform:translateX(110vw)}}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;position:relative;z-index:2}
+.brand{font-weight:1000;font-size:clamp(17px,3vw,27px);color:#fff;text-shadow:0 3px 0 #1d5591,0 5px 8px #17456d;letter-spacing:.4px}.hud{display:flex;gap:8px;flex-wrap:wrap}.pill{background:#fff7df;border:3px solid #d69b35;border-radius:30px;padding:7px 13px;font-weight:900;box-shadow:var(--shadow);font-size:14px}
+main{position:relative;z-index:1;max-width:1180px;margin:auto;padding:12px 18px 40px}
+.panel{background:linear-gradient(145deg,#fffdf2,#ffe7b1);border:5px solid #d99b43;border-radius:25px;box-shadow:var(--shadow);padding:clamp(16px,3vw,28px);position:relative}
+.hero{min-height:75vh;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:18px}
+h1{font-size:clamp(35px,6vw,68px);line-height:.98;margin:8px 0;color:#f2a51f;text-shadow:0 4px 0 #9b5719,2px 7px 8px #8d633b}.hero p{font-size:clamp(16px,2vw,20px);font-weight:700;color:#36516a}
+.hero-art{min-height:330px;display:flex;align-items:center;justify-content:center;position:relative}
+.hero-art svg{width:min(100%,420px);filter:drop-shadow(0 15px 10px #315b4b55)}
+.btn{padding:12px 18px;border-radius:16px;background:linear-gradient(#ffdf69,#ffad24);color:#603a12;border:3px solid #bd7924;box-shadow:0 5px 0 #a45e1c,0 8px 15px #73491e33;font-weight:1000;margin:5px;transition:.12s}.btn:hover{transform:translateY(-2px);filter:brightness(1.05)}.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #a45e1c}.btn.blue{background:linear-gradient(#80d5ff,#328ce3);border-color:#2164a3;color:white;box-shadow:0 5px 0 #1e5a91}.btn.green{background:linear-gradient(#9de6a7,#4dbd75);border-color:#28814c;color:#104c2d;box-shadow:0 5px 0 #267244}.btn.red{background:linear-gradient(#ffb5a7,#ef685e);border-color:#b9433b;color:white;box-shadow:0 5px 0 #a83b36}
+.menu-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}.menu-grid .btn{min-height:58px}
+.section-title{font-size:clamp(25px,4vw,38px);color:#a85e19;text-shadow:0 2px #fff;margin:0 0 12px}.sub{font-weight:700;color:#4b6274}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}.card{background:#fff;border:3px solid #e7b45c;border-radius:19px;padding:15px;box-shadow:0 5px 0 #d7a14b;text-align:center}.card h3{margin:8px 0 5px;color:#245e96}.avatar{width:100px;height:100px;margin:auto;display:block}
+.world-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}.world{min-height:125px;border-radius:18px;padding:14px;background:linear-gradient(145deg,#c6f0ff,#80d7a1);border:3px solid #fff;box-shadow:0 5px 0 #4c9b82;text-align:left;font-weight:900;color:#184d5c}.world.locked{filter:grayscale(.7);opacity:.65}
+.game-layout{display:grid;grid-template-columns:1.3fr .7fr;gap:15px}.game-stage{background:linear-gradient(#7ed1f3,#d7f5ff 60%,#74bd70 61%);border:4px solid #fff;border-radius:20px;min-height:280px;padding:15px;position:relative;overflow:hidden}
+.playground{height:220px;position:relative;border-bottom:7px solid #4b9a53;background:linear-gradient(transparent 70%,#8acb70 70%);overflow:hidden}
+.player{position:absolute;bottom:5px;left:15%;font-size:54px;transition:left .15s,transform .15s;filter:drop-shadow(0 4px 2px #5555)}
+.obstacle{position:absolute;bottom:6px;right:20%;font-size:42px}.game-controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin:14px 0}.choice{background:#fff;border:3px solid #8ec5e8;border-radius:15px;padding:14px 8px;font-size:22px;font-weight:1000;color:#245e96;box-shadow:0 4px 0 #79add0}.choice:hover{background:#fff4c8}.choice.correct{background:#b7f1c5;border-color:#44ad68}.choice.wrong{background:#ffd0c8;border-color:#e16a5d}
+.feedback{font-weight:900;min-height:28px;color:#246b42;margin:8px 0}.progress{height:14px;background:#d8e4e9;border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,#68ce8d,#ffcf45);width:0%;transition:width .3s}
+.note{background:#fff;border-radius:15px;padding:14px;border:2px dashed #e3ae4b;margin:10px 0}.topline{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+input{padding:11px;border:2px solid #b6cbd7;border-radius:12px;width:100%;max-width:300px}.hidden{display:none!important}.small{font-size:13px;color:#5b7182}.map-path{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:18px}.map-node{width:125px;height:115px;border-radius:20px;background:linear-gradient(#fff,#d5f4ff);border:4px solid #d8a34b;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;box-shadow:0 5px 0 #ae782d;cursor:pointer}.map-node span{font-size:36px}.map-node.locked{opacity:.5;filter:grayscale(1)}
+footer{text-align:center;padding:15px;color:#31566b;font-size:12px}
+@media(max-width:760px){.hero{grid-template-columns:1fr;text-align:center;min-height:auto}.hero-art{min-height:210px}.menu-grid{grid-template-columns:repeat(2,1fr)}.game-layout{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.panel{padding:15px}main{padding:8px}.hud{width:100%}}
+
+/* Peningkatan pengembaraan 2.5D */
+.adventure-wrap{display:grid;grid-template-columns:minmax(0,1fr) 265px;gap:14px}
+.world-canvas{width:100%;height:auto;display:block;border:4px solid #fff;border-radius:18px;background:#9bdcf4;box-shadow:0 5px 0 #77a8ae;touch-action:none}
+.side-panel{background:#fff9e9;border:3px solid #e4b65e;border-radius:18px;padding:14px}
+.side-panel h3{margin:4px 0 8px;color:#255d8c}
+.control-pad{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.control-pad button{min-width:54px;min-height:48px;font-size:19px;touch-action:none}
+.quest-list{display:grid;gap:7px}.quest{background:#fff;border:2px solid #e7c77e;border-radius:12px;padding:8px;font-size:13px;font-weight:800}
+.quest.done{background:#d8f6dc;border-color:#6fbd82}
+.map-world-card{min-height:150px;position:relative;overflow:hidden;background:linear-gradient(150deg,#b9e9ff,#e9f9d5 65%,#a4d98b);border:3px solid #fff;border-radius:19px;padding:13px;text-align:left;box-shadow:0 5px 0 #7bb18c}
+.map-world-card .world-emoji{font-size:42px;display:block}.map-world-card strong{display:block;color:#174f73}.map-world-card small{color:#476879;font-weight:700}
+.map-world-card.locked{filter:grayscale(.7);opacity:.7}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:20;background:#173d61;color:white;border:2px solid #ffda70;border-radius:20px;padding:11px 18px;font-weight:900;box-shadow:0 5px 20px #0003;display:none}
+@media(max-width:800px){.adventure-wrap{grid-template-columns:1fr}.side-panel{order:2}.world-canvas{min-height:230px}}
+
+
+/* V3: kamera bergerak, landskap berlapis dan HUD misi */
+.adventure-wrap{grid-template-columns:minmax(0,1fr) 285px}
+.world-canvas{height:auto;aspect-ratio:16/8.3;min-height:260px}
+.side-panel{position:relative}
+.mission-meter{height:12px;border-radius:20px;background:#e8d7b3;overflow:hidden;margin:8px 0}
+.mission-meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,#65c981,#b7e66b);transition:width .3s}
+.action-hint{background:#e6f5ff;border:2px solid #9acde9;border-radius:12px;padding:9px;font-size:13px;font-weight:800}
+@media(max-width:800px){.world-canvas{min-height:220px}.adventure-wrap{grid-template-columns:1fr}}
+
+
+.room-scene{min-height:340px;border:4px solid white;border-radius:20px;padding:22px;background:linear-gradient(#bce9fa 0 55%,#d8c18f 55%);position:relative;overflow:hidden}
+.room-wall{max-width:760px;margin:10px auto;background:#fff4d8;border:7px solid #bd8750;border-radius:18px;padding:22px;text-align:center;box-shadow:0 8px 0 #9b6b45}
+.room-shelf{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:20px}
+.room-object{background:#fff;border:3px solid #e4bd6d;border-radius:14px;padding:12px;min-width:105px;font-size:30px}
+.room-object small{display:block;font-size:12px;font-weight:800;color:#36536c}
+.v4-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.shop-item{background:#fff;border:3px solid #e7c77e;border-radius:16px;padding:14px;text-align:center}
+.shop-item .item-art{font-size:43px}
+.boss-card{background:linear-gradient(140deg,#d8d4fa,#fff1cf);border:4px solid #fff;border-radius:20px;padding:20px;text-align:center}
+.boss-choice{display:block;width:100%;margin:9px 0;padding:13px;border:2px solid #8bb8d5;border-radius:12px;background:#fff;font-weight:900;color:#234b68}
+.vehicle-on{background:#fff0b7!important;border-color:#e5a52b!important}
+@media(max-width:650px){.room-scene{padding:10px}.room-wall{padding:12px}}
+
+
+/* ===== REDESIGN 2D ILUSTRASI CERIA ===== */
+:root{--navy:#174b76;--blue:#2586d8;--gold:#ffd34f;--cream:#fff8df;--green:#54b978;--pink:#f28eaf;--shadow:0 5px 0 rgba(93,65,30,.20),0 10px 20px rgba(39,74,91,.14)}
+body{font-family:"Trebuchet MS",system-ui,sans-serif;background:#75c8ef;color:#214761}
+#app{background:linear-gradient(180deg,#65c7f7 0%,#c7efff 47%,#8bd17f 100%)}
+header{max-width:1240px;margin:auto;padding:14px 20px}
+.brand{font-size:clamp(20px,3vw,32px);color:#fff;text-shadow:0 3px #174f8a,0 6px 0 #113d69;letter-spacing:.5px}
+.pill{background:linear-gradient(#fff9df,#ffe7a8);border:3px solid #c98636;border-radius:18px;box-shadow:0 3px 0 #a66a2e;color:#67411d}
+.panel{background:linear-gradient(145deg,#fffdf1,#ffedbd);border:5px solid #d99b43;border-radius:25px;box-shadow:0 7px 0 #a96d32,0 13px 24px #355c6540}
+.section-title{color:#a95b1c;text-shadow:0 2px #fff}
+.btn{border-radius:15px;background:linear-gradient(#ffe47a,#ffb52e);border:3px solid #bf792b;box-shadow:0 5px 0 #985c24,0 7px 12px #79512b30;color:#633b16}
+.btn.blue{background:linear-gradient(#83dcff,#318de2);border-color:#2165a4;box-shadow:0 5px 0 #1c578c;color:#fff}
+.btn.green{background:linear-gradient(#a9edaa,#54c77a);border-color:#328a4e;box-shadow:0 5px 0 #287345;color:#164d2b}
+.btn.red{background:linear-gradient(#ffb9a9,#ef6d60)}
+.card,.shop-item{background:linear-gradient(#fff,#fff8e7);border:3px solid #e5b75e;border-radius:19px;box-shadow:0 5px 0 #d7a14b}
+.world,.map-world-card{background:linear-gradient(150deg,#d5f5ff,#a7e6ad 70%,#83c77a);border:3px solid #fff;border-radius:20px;box-shadow:0 5px 0 #579b76;color:#174e62}
+.world-emoji{filter:drop-shadow(0 3px 1px #4563)}
+.game-stage{background:linear-gradient(#86d8fa,#d8f5ff 60%,#8bd17f 61%);border:4px solid white;border-radius:20px}
+.side-panel{background:linear-gradient(#fff9e8,#ffedc4);border:3px solid #e4b65e;border-radius:19px;box-shadow:0 4px 0 #c58e44}
+.quest{border:2px solid #e7c77e;background:#fffdf5;border-radius:13px}
+.quest.done{background:#d8f6dc}
+.choice{border:3px solid #91c8e7;border-radius:16px;background:#fff;box-shadow:0 4px 0 #79add0;color:#245e96}
+.choice.correct{background:#b7f1c5}
+.choice.wrong{background:#ffd0c8}
+.note{background:#fffdf2;border:2px dashed #e3ae4b;border-radius:15px}
+.hero{min-height:72vh}
+.hero h1{color:#f6a91f;text-shadow:0 4px #97541d,2px 7px 8px #8d633b}
+.hero-art{background:radial-gradient(ellipse at 50% 70%,#a5df91 0 35%,transparent 36%);border-radius:30px}
+.avatar{filter:drop-shadow(0 5px 2px #385a4540)}
+.world-canvas{aspect-ratio:16/8.3;min-height:250px;background:#a8e6ff;border:4px solid #fff;border-radius:18px;image-rendering:auto}
+.control-pad .btn{min-width:58px;min-height:48px}
+footer{font-weight:700;color:#31566b}
+@media(max-width:760px){header{padding:10px}.hero{min-height:auto}.world-canvas{min-height:200px}}
+
+
+/* ===== STORYBOOK ART DIRECTION ===== */
+:root{--ink:#31506b;--wood:#9a552d;--wood-dark:#713b24;--honey:#f4bd55;--paper:#fff9e9;--mint:#bce8bd;--sky:#a8e1fa}
+body{font-family:"Trebuchet MS",Arial,sans-serif;color:var(--ink);background:#a7def5}
+#app{background:linear-gradient(180deg,#9cddfa 0%,#d5f1f6 58%,#8acb83 100%)}
+.sky{opacity:.35}
+.cloud{opacity:.75;filter:blur(.2px)}
+header{max-width:1260px;padding:15px 22px}
+.brand{font-size:clamp(19px,3vw,29px);letter-spacing:1px;color:#fff8df;text-shadow:0 2px 0 #8e542e,0 5px 0 #416d82,0 7px 12px #24465b}
+.hud{gap:10px}
+.pill{border:2px solid #e3ae54;background:linear-gradient(#fffdf4,#f8e6bd);border-radius:16px;color:#78502e;box-shadow:0 3px 0 #bd8748,0 7px 13px #42677b26}
+main{max-width:1240px;padding:10px 20px 42px}
+.panel{background:linear-gradient(145deg,#fffdf4,#fff2d6);border:3px solid #e6bd78;border-radius:25px;box-shadow:0 6px 0 #b98550,0 14px 30px #315b6b2b;padding:clamp(17px,3vw,30px)}
+.section-title{color:#8e512b;font-size:clamp(25px,4vw,37px);text-shadow:0 1px #fff}
+.sub{color:#63798a}
+.btn{background:linear-gradient(#f9d77d,#e9a846);border:2px solid #b77835;border-radius:13px;color:#70421f;box-shadow:0 4px 0 #93572b,0 7px 12px #68472a20;font-weight:1000;transition:transform .15s,filter .15s}
+.btn:hover{transform:translateY(-2px);filter:saturate(1.08)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #93572b}
+.btn.blue{background:linear-gradient(#82d6ed,#4699c4);border-color:#347a9e;box-shadow:0 4px 0 #2b6688;color:white}
+.btn.green{background:linear-gradient(#b8e3a2,#76bd77);border-color:#568e50;box-shadow:0 4px 0 #467c49;color:#285a35}
+.btn.red{background:linear-gradient(#f7b6a1,#e77d69);border-color:#bd5d4e;box-shadow:0 4px 0 #984738}
+.card,.shop-item{background:linear-gradient(145deg,#fffefa,#fff4df);border:2px solid #e8c98e;border-radius:18px;box-shadow:0 4px 0 #d2ae70,0 9px 16px #536d6520;padding:16px}
+.card h3,.shop-item h3{color:#87512f}
+.avatar{filter:drop-shadow(0 6px 4px #526c6335)}
+.world-grid{gap:15px}
+.world,.map-world-card{background:linear-gradient(155deg,#e3f5dd,#b9e5ce 58%,#9bd1a3);border:3px solid #fffdf0;border-radius:18px;box-shadow:0 5px 0 #6eaa7c,0 8px 14px #456b5225;color:#315a4d;transition:transform .16s}
+.world:hover,.map-world-card:hover{transform:translateY(-3px)}
+.world.locked,.map-world-card.locked{filter:grayscale(.6);opacity:.65}
+.game-stage{background:linear-gradient(#b8e8f7,#e7f6e9 62%,#b7d88c 63%);border:3px solid #fffdf3;border-radius:19px}
+.side-panel{background:linear-gradient(#fffdf3,#fff0d1);border:2px solid #e4c38b;border-radius:17px;box-shadow:0 4px 0 #cba66d}
+.quest{background:#fffdf5;border:1px solid #e7cf9f;border-radius:11px;color:#52677a}
+.quest.done{background:#e2f4dc;border-color:#a7d39c}
+.action-hint{background:#e9f5f5;border:1px solid #b8d9d6;border-radius:11px;color:#456e73}
+.choice{background:linear-gradient(#fff,#f7fbff);border:2px solid #a9cbd8;border-radius:14px;color:#37627d;box-shadow:0 3px 0 #8fb4c6}
+.choice:hover{background:#fff4d7}
+.choice.correct{background:#d8f0cb;border-color:#8bc17f}
+.choice.wrong{background:#f8d8ce;border-color:#db9988}
+.note{background:#fffaf0;border:1px dashed #d5ad68;border-radius:13px;color:#5b6e77}
+.progress{background:#e6e2d2}.progress span{background:linear-gradient(90deg,#7fc28b,#f1c45f)}
+.world-canvas{border:3px solid #fffdf4;border-radius:17px;box-shadow:0 5px 0 #91b7a1}
+.room-scene{border:3px solid white;border-radius:18px}
+.room-wall{background:#fff6df;border:5px solid #b67c4c;border-radius:15px;box-shadow:0 6px 0 #956343}
+.boss-card{background:linear-gradient(145deg,#f1edff,#fff4d8);border:3px solid white;border-radius:18px}
+#toast{background:#365c6c;border:2px solid #f0cb75;border-radius:14px}
+footer{color:#597b82}
+.topline .btn{font-size:14px}
+@media(max-width:760px){main{padding:8px 10px 30px}.panel{border-radius:20px;padding:15px}.brand{font-size:19px}}
+/* Home scene */
+.story-home{position:relative;isolation:isolate;overflow:hidden;min-height:690px;padding:0!important;border:0;background:linear-gradient(180deg,#82d3f5 0%,#c4ecf2 53%,#94cf8a 54%,#69b66e 100%);box-shadow:0 7px 0 #8d6547,0 15px 30px #315b6b35}
+.story-home:before{content:"";position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 50% 75%,#fff5b8 0 2%,transparent 38%),radial-gradient(circle at 12% 20%,#fff9 0 2px,transparent 3px),radial-gradient(circle at 82% 17%,#fff9 0 3px,transparent 4px)}
+.story-home .hero-copy{position:relative;z-index:3;padding:34px 3.5%;width:54%;min-width:330px}
+.story-home .welcome-ribbon{display:inline-block;background:#fff5d9;border:2px solid #d6a55c;border-radius:20px;padding:8px 16px;color:#86502c;font-weight:900;box-shadow:0 3px 0 #ae7845}
+.story-home h1{font-size:clamp(43px,6.4vw,76px);line-height:.92;letter-spacing:-2px;color:#ffd34f;-webkit-text-stroke:1.5px #8a4c2b;text-shadow:0 4px 0 #8a4c2b,2px 8px 0 #386e8c,0 12px 17px #31576c80;margin:25px 0 16px}
+.story-home .hero-description{max-width:470px;font-size:18px;line-height:1.5;color:#31566a;font-weight:800;text-shadow:0 1px #fff9}
+.story-home .hero-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+.story-home .hero-actions .btn{padding:14px 21px;font-size:16px}
+.story-home .hero-actions .btn.blue{font-size:18px;padding:15px 25px}
+.story-home .hero-illustration{position:absolute;right:0;bottom:0;width:58%;height:100%;pointer-events:none}
+.story-home .hero-illustration svg{width:100%;height:100%;display:block}
+.story-home .menu-plank{position:relative;z-index:4;margin:0 3.5% 28px;padding:12px;background:linear-gradient(90deg,#9c5d34,#c88748,#92532e);border:4px solid #f1c66d;border-radius:18px;box-shadow:inset 0 0 0 2px #754323,0 5px 0 #603a26;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.story-home .menu-plank .btn{margin:0;background:linear-gradient(#fff3d2,#f2d18e);border:2px solid #9a6339;box-shadow:0 3px 0 #75492c;color:#704523;padding:11px 6px;font-size:14px}
+.story-home .menu-plank .btn:hover{background:#fff9e9}
+.story-home .menu-plank .btn span{display:block;font-size:21px;margin-bottom:3px}
+.story-home .sparkle{position:absolute;color:#fff4a7;font-size:24px;text-shadow:0 2px 5px #fff}
+@media(max-width:760px){.story-home{min-height:820px}.story-home .hero-copy{width:100%;min-width:0;text-align:center;padding:25px 18px 0}.story-home h1{font-size:clamp(43px,12vw,66px)}.story-home .hero-description{margin:auto}.story-home .hero-actions{justify-content:center}.story-home .hero-illustration{width:100%;height:47%;bottom:135px}.story-home .menu-plank{grid-template-columns:repeat(2,1fr);margin:0 12px 16px}.story-home .menu-plank .btn{font-size:13px}}
+/* Character cards and map styling */
+.character-card{position:relative;overflow:hidden;background:linear-gradient(160deg,#fffdf5,#e7f5e8);padding:12px 12px 17px;border:2px solid #e9c98e;border-radius:18px;box-shadow:0 5px 0 #c6a06a;text-align:center}
+.character-card .avatar{width:145px;height:145px;background:radial-gradient(circle at 50% 60%,#fff 0 45%,transparent 46%)}
+.character-card h3{margin:2px 0;color:#87512f}
+.character-card .role-tag{display:inline-block;background:#fff1c9;color:#80512e;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:900}
+.map-board{position:relative;overflow:hidden;padding:24px;border-radius:20px;background:linear-gradient(#8fd7f2 0%,#c9f0df 55%,#9bd28a 100%);border:3px solid #fff;box-shadow:inset 0 0 0 2px #d7c08a}
+.map-board:before,.map-board:after{content:"";position:absolute;border-radius:50%;background:#75bd78;opacity:.35;filter:blur(1px)}
+.map-board:before{width:420px;height:150px;left:-80px;bottom:-70px}.map-board:after{width:450px;height:170px;right:-100px;top:-90px}
+.map-board .world-grid{position:relative;z-index:1}
+.map-board .world{min-height:148px;text-align:center;padding:12px;background:linear-gradient(155deg,#fff8dc,#c9eab9);border:3px solid #fff;box-shadow:0 4px 0 #82b17d}
+.map-board .world div:first-child{font-size:42px!important;margin-bottom:6px}
+.activity-card{position:relative;overflow:hidden;min-height:178px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:linear-gradient(150deg,#fffdf6,#e7f5f3);border:2px solid #e5c88f;border-radius:17px;padding:13px;box-shadow:0 4px 0 #c6a675;text-align:center}
+.activity-card:before{content:"";position:absolute;width:110px;height:110px;top:-52px;right:-36px;border-radius:50%;background:#f8e2a9;opacity:.5}
+.activity-card .activity-art{position:relative;font-size:48px;filter:drop-shadow(0 4px 2px #4b655322)}
+.activity-card h3{position:relative;font-size:16px;margin:8px 0;color:#785039}
+.activity-card .btn{width:100%;margin:0}
+
+</style>
+</head>
+<body>
+<div id="app">
+<div class="sky"></div><div class="cloud" style="top:14%;left:5%"></div><div class="cloud" style="top:33%;left:70%;animation-delay:-12s"></div>
+<header><div class="brand">✦ JOM BACA! ADVENTURE ✦</div><div class="hud"><div class="pill">⭐ <span id="stars">0</span></div><div class="pill">🍌 <span id="coins">0</span></div><div class="pill">✨ Tahap <span id="level">1</span></div></div></header>
+<main id="screen"></main>
+<footer>JOM BACA! ADVENTURE · Permainan literasi Bahasa Melayu · Kemajuan disimpan pada peranti ini</footer>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const words=[
+ ["ba","ju","baju","👕"],["ba","tu","batu","🪨"],["ba","ta","bata","🧱"],["ba","ca","baca","📖"],["ba","ru","baru","✨"],["ba","gi","bagi","🎁"],["ba","hu","bahu","💪"],["ba","pa","bapa","👨"],["ba","wa","bawa","👜"],
+ ["bo","la","bola","⚽"],["bu","ku","buku","📘"],["bu","di","budi","🌟"],
+ ["ca","ri","cari","🔎"],["cu","ci","cuci","🫧"],["cu","ka","cuka","🧴"],
+ ["da","da","dada","🫀"],["da","du","dadu","🎲"],["da","hi","dahi","🙂"],
+ ["gi","gi","gigi","🦷"],["gu","la","gula","🧂"],["gu","li","guli","🔵"],
+ ["ha","ri","hari","☀️"],["ha","ti","hati","❤️"],
+ ["ja","ri","jari","☝️"],["ja","la","jala","🕸️"],["ja","ga","jaga","🛡️"],["ja","di","jadi","⭐"],
+ ["ka","ki","kaki","🦶"],["ka","ca","kaca","🪞"],["ku","da","kuda","🐴"],["ku","ku","kuku","💅"],["ka","ta","kata","💬"],["ka","ri","kari","🍛"],
+ ["la","da","lada","🌶️"],["la","gu","lagu","🎵"],["la","ri","lari","🏃"],["la","ju","laju","🚗"],["li","ma","lima","5️⃣"],["lu","pa","lupa","🤔"],["lu","ka","luka","🩹"],
+ ["ma","ma","mama","👩"],["ma","ta","mata","👀"],["ma","du","madu","🍯"],["ma","sa","masa","⏰"],["ma","lu","malu","😊"],["ma","ri","mari","👋"],["ma","hu","mahu","🙋"],
+ ["me","ja","meja","🪑"],["na","si","nasi","🍚"],["na","ma","nama","🏷️"],["na","ga","naga","🐉"],["pa","di","padi","🌾"],["pa","ha","paha","🍗"],["pa","ku","paku","🔩"],["pa","su","pasu","🪴"],["pa","gi","pagi","🌅"],["pa","pa","papa","👨"],
+ ["pi","ta","pita","🎀"],["ra","ja","raja","👑"],["ra","sa","rasa","😋"],["ro","da","roda","🛞"],["ro","ti","roti","🍞"],["ru","sa","rusa","🦌"],["ra","pi","rapi","🧹"],
+ ["sa","tu","satu","1️⃣"],["sa","te","sate","🍢"],["sa","ku","saku","👖"],["sa","ma","sama","🤝"],["sa","pu","sapu","🧹"],["sa","ya","saya","🙋"],["si","ku","siku","💪"],["si","ni","sini","📍"],["si","la","sila","🪑"],["su","su","susu","🥛"],["su","ka","suka","😄"],["su","ku","suku","🧩"],
+ ["ta","li","tali","🪢"],["ta","hu","tahu","🍽️"],["ta","wa","tawa","😆"],["ti","su","tisu","🧻"],["ti","ga","tiga","3️⃣"],["ti","ba","tiba","🚉"],["ti","ru","tiru","✍️"],["to","pi","topi","🧢"],["to","ko","toga","🎓"]
+];
+const characterData=[{name:"Ari",role:"Ketua Pengembaraan",color:"#f4b332",desc:"Berani dan suka meneroka.",hair:"#57372a",shirt:"#f4b332"},{name:"Mira",role:"Pencinta Buku",color:"#ee8fb0",desc:"Bijak membaca dan menyusun perkataan.",hair:"#4b302b",shirt:"#e987a9"},{name:"Bimo",role:"Pemerhati Cilik",color:"#67b9df",desc:"Teliti mencari petunjuk.",hair:"#5a3829",shirt:"#398dc5"},{name:"Timo",role:"Pencari Harta",color:"#83bd72",desc:"Gemar mengumpul objek tersembunyi.",hair:"#68462f",shirt:"#5caa70"}];
+let data=JSON.parse(localStorage.getItem("jombaca-save")||"null")||{name:"Pengembara Cilik",character:0,stars:0,coins:0,xp:0,done:[],unlocked:1,level:1};
+let currentGame="",qIndex=0,correct=0,selected=[],memoryOpen=[],memoryDone=[],playerX=15,moveTimer=null;
+function save(){localStorage.setItem("jombaca-save",JSON.stringify(data));$("#stars").textContent=data.stars;$("#coins").textContent=data.coins;$("#level").textContent=data.level}
+function award(n=1){data.stars+=n;data.coins+=n*5;data.xp+=n*10;data.level=1+Math.floor(data.xp/100);save()}
+function shell(title,body,back="home"){return `<section class="panel"><div class="topline"><h2 class="section-title">${title}</h2><button class="btn" onclick="go('${back}')">↩ Kembali</button></div>${body}</section>`}
+function mascot(i=0){let c=characterData[i];return `<svg class="avatar" viewBox="0 0 120 120" aria-label="${c.name}"><ellipse cx="60" cy="111" rx="35" ry="6" fill="#577b63" opacity=".3"/><path d="M29 53 Q25 12 60 12 Q95 12 91 53 L91 82 Q88 108 60 108 Q32 108 29 82Z" fill="#f6c98d" stroke="#9a633c" stroke-width="3"/><path d="M30 47 Q26 7 62 13 Q89 15 91 46 Q75 31 60 35 Q45 33 30 47" fill="${c.hair}"/><circle cx="47" cy="57" r="10" fill="white"/><circle cx="73" cy="57" r="10" fill="white"/><circle cx="49" cy="58" r="5" fill="#553a2d"/><circle cx="71" cy="58" r="5" fill="#553a2d"/><path d="M49 78 Q60 88 72 77" stroke="#a64e42" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M25 91 Q60 78 95 91 L100 115 L20 115Z" fill="${c.shirt}" stroke="#285b80" stroke-width="2"/></svg>`}
+function home(){save();$("#screen").innerHTML=`<section class="panel hero"><div><div class="pill">🌈 Selamat datang, ${data.name}!</div><h1>JOM BACA!<br>ADVENTURE</h1><p>Teroka dunia ajaib, kumpul bintang dan kuasai suku kata KV + KV bersama rakan pengembaraan!</p><button class="btn blue" style="font-size:23px;padding:17px 28px" onclick="go('characters')">▶ MULA PERMAINAN</button><button class="btn" onclick="go('map')">🗺 PETA DUNIA</button><div class="menu-grid"><button class="btn" onclick="go('profile')">👤 PROFIL</button><button class="btn" onclick="go('activities')">📚 JOM BACA!</button><button class="btn" onclick="go('collection')">🎒 KOLEKSI</button><button class="btn" onclick="go('shop')">🛍️ KEDAI</button><button class="btn" onclick="go('achievements')">🏆 PENCAPAIAN</button><button class="btn" onclick="go('certificate')">📜 SIJIL</button><button class="btn" onclick="go('settings')">⚙ TETAPAN</button></div></div><div class="hero-art">${mascot(data.character)}<div style="position:absolute;right:2%;top:5%;font-size:70px">🏰</div><div style="position:absolute;left:3%;top:10%;font-size:52px">☁️</div><div style="position:absolute;right:5%;bottom:4%;font-size:55px">🌳</div></div></section>`}
+function go(page){({home,characters,map,activities,profile,collection,achievements,certificate,settings,game,explore,shop}[page]||home)()}
+function characters(){$("#screen").innerHTML=shell("PILIH WATAK PENGEMBARA",`<p class="sub">Pilih rakan yang akan menemani pengembaraan kamu.</p><div class="cards">${characterData.map((c,i)=>`<div class="card">${mascot(i)}<h3>${c.name}</h3><b>${c.role}</b><p class="small">${c.desc}</p><button class="btn ${data.character===i?'green':'blue'}" onclick="data.character=${i};save();characters()">Pilih watak</button></div>`).join("")}</div><div style="text-align:center;margin-top:18px"><button class="btn green" onclick="go('map')">Teruskan pengembaraan →</button></div>`)}
+const worlds=[["🏡","Gru's House","Cari buku petunjuk"],["🌙","Moon World","Kumpul suku kata di bulan"],["🚀","Outer Space","Bina perkataan angkasa"],["🧪","Secret Laboratory","Aktifkan mesin bahasa"],["🏙️","City World","Baca papan tanda"],["🌋","Volcano World","Selesaikan teka-teki"],["🏰","Villain Castle","Misi rahsia KV+KV"],["🐠","Underwater World","Memancing perkataan"],["🌆","Futuristic City","Cabaran membaca"],["🌈","JOM BACA! World","Pusat pembelajaran utama"]];
+function map(){$("#screen").innerHTML=shell("PETA DUNIA",`<p class="sub">Selesaikan misi untuk membuka kawasan seterusnya. Dunia pertama tersedia untuk diterokai.</p><div class="world-grid">${worlds.map((w,i)=>`<button class="world ${i>=data.unlocked?'locked':''}" onclick="${i<data.unlocked?`go('explore')`:`lockedWorld()`}"><div style="font-size:35px">${w[0]}</div>${w[1]}<div class="small">${i<data.unlocked?'✓ Boleh diterokai':'🔒 Belum dibuka'}</div></button>`).join("")}</div><div class="note">⭐ Bintang terkumpul: ${data.stars} · Misi selesai: ${data.done.length}</div>`)}
+function lockedWorld(){alert("Selesaikan aktiviti membaca untuk membuka dunia ini!")}
+function explore(){$("#screen").innerHTML=shell("PENGEMBARAAN: SYLLABLE TOWN",`<p class="sub">Cari papan tanda dan bantu penduduk menyusun perkataan.</p><div class="game-stage"><div class="playground" id="playground"><div class="player" id="player">${mascot(data.character)}</div><div class="obstacle">📦</div><div style="position:absolute;right:5%;top:15px;font-size:40px">🏠</div><div style="position:absolute;left:45%;top:10px;font-size:42px">⭐</div></div><div class="game-controls"><button class="btn" onpointerdown="move(-1)" onpointerup="stopMove()">◀</button><button class="btn" onpointerdown="move(1)" onpointerup="stopMove()">▶</button><button class="btn blue" onclick="jump()">LOMPAT</button><button class="btn green" onclick="go('activities')">MASUK AKTIVITI</button></div></div><p class="small">Komputer: gunakan kekunci A/D atau anak panah. Ruang untuk melompat. Telefon: gunakan butang kawalan.</p>`)}
+function move(d){playerX=Math.max(0,Math.min(88,playerX+d*5));let p=$("#player");if(p)p.style.left=playerX+"%"}function stopMove(){}function jump(){let p=$("#player");if(!p)return;p.style.transform="translateY(-65px)";setTimeout(()=>p.style.transform="",350)}
+window.addEventListener("keydown",e=>{if(["ArrowRight","d","D"].includes(e.key))move(1);if(["ArrowLeft","a","A"].includes(e.key))move(-1);if(e.code==="Space")jump()});
+const activitiesList=[["🚂","Kereta Api Suku Kata","train"],["🎣","Memancing Perkataan","fish"],["🎈","Belon Membaca","balloon"],["🖼️","Padanan Gambar","match"],["🃏","Permainan Memori","memory"],["🎡","Roda Perkataan","wheel"],["🧩","Membina Perkataan","build"],["🪰","Menangkap Perkataan","catch"],["📖","Membina Ayat Mudah","sentence"],["🧩","Puzzle Suku Kata","puzzle"],["🔐","Misi Rahsia KV+KV","secret"],["🔊","Nota Audio Sebutan","audio"],["❓","Kuiz Automatik","quiz"]];
+function activities(){$("#screen").innerHTML=shell("JOM BACA! — PUSAT AKTIVITI",`<p class="sub">Pilih aktiviti untuk mengumpul bintang dan membuka dunia baharu.</p><div class="note" style="margin-bottom:16px">📚 <b>Bank perkataan diperluas:</b> 85 perkataan KV+KV. Setiap pusingan memilih 10 perkataan secara rawak supaya latihan lebih pelbagai.</div><div class="cards">${activitiesList.map(a=>`<div class="card"><div style="font-size:48px">${a[0]}</div><h3>${a[1]}</h3><button class="btn blue" onclick="startGame('${a[2]}')">Main sekarang</button></div>`).join("")}</div>`)}
+let roundWords=[];
+function shuffleList(list){return [...list].sort(()=>Math.random()-.5)}
+function pickWordOptions(target,field,count=3){
+ const key=target[field];
+ const distractors=shuffleList([...new Set(words.filter(w=>w!==target&&w[field]!==key).map(w=>w[field]))]).slice(0,count);
+ return shuffleList([key,...distractors]);
+}
+function startGame(type){currentGame=type;qIndex=0;correct=0;selected=[];memoryOpen=[];memoryDone=[];roundWords=shuffleList(words).slice(0,10);game()}
+function game(){let w=roundWords[qIndex]||words[qIndex%words.length],title=activitiesList.find(a=>a[2]===currentGame)?.[1]||"Aktiviti";let body="";
+if(currentGame==="audio"){body=`<div class="note"><h3>Nota sebutan Bahasa Melayu</h3><p>Huruf vokal: A, E, I, O, U</p><p>Suku kata KV: ba, bi, bu, be, bo</p><p>Gabungan dua suku kata terbuka membentuk banyak perkataan. Contoh: ba + ju = baju, bo + la = bola, ja + ri = jari dan sa + pu = sapu.</p><p>Bank latihan permainan ini mengandungi 85 perkataan yang akan dipilih secara rawak.</p></div><div class="choice-grid">${["Huruf vokal","Suku kata KV","Gabungan KV+KV","Sebutan perkataan"].map((x,i)=>`<button class="choice" onclick="speak(['A, E, I, O, U','ba, bi, bu, be, bo','ba tambah ju menjadi baju','baju'][${i}])">${x}<br>🔊</button>`).join("")}</div>`}
+else if(currentGame==="train"||currentGame==="fish"||currentGame==="balloon"||currentGame==="build"||currentGame==="puzzle"||currentGame==="secret"){let opts=pickWordOptions(w,0,3);body=`<div class="game-stage" style="text-align:center"><div style="font-size:55px">${currentGame==="train"?"🚂":currentGame==="fish"?"🎣":currentGame==="balloon"?"🎈":currentGame==="secret"?"🔐":"🧩"}</div><h3>Pilih suku kata pertama untuk membentuk:</h3><div style="font-size:42px;font-weight:1000;color:#2477b9">${w[2]}</div><div class="choice-grid">${opts.map(o=>`<button class="choice" onclick="answer('${o}','${w[0]}')">${o}</button>`).join("")}</div><p>Suku kata kedua: <b>${w[1]}</b></p></div>`}
+else if(currentGame==="match"||currentGame==="quiz"||currentGame==="catch"){let opts=pickWordOptions(w,2,2);body=`<div class="game-stage" style="text-align:center"><div style="font-size:75px">${w[3]}</div><h3>${currentGame==="match"?"Pilih perkataan yang sepadan dengan gambar:":currentGame==="catch"?"Tangkap perkataan yang betul:":"Apakah nama gambar ini?"}</h3><div class="choice-grid">${opts.map(o=>`<button class="choice" onclick="answer('${o}','${w[2]}')">${o}</button>`).join("")}</div></div>`}
+else if(currentGame==="wheel"){body=`<div style="text-align:center"><div id="wheel" style="font-size:90px;transition:transform 1s">🎡</div><button class="btn blue" onclick="spinWheel()">PUTAR RODA</button><div id="wheelResult" class="note">Tekan putar dan baca perkataan yang muncul.</div></div>`}
+else if(currentGame==="memory"){let pairs=shuffleList(words).slice(0,4).map(w=>[w[3],w[2]]);body=`<p>Cari pasangan gambar dan perkataan yang sama.</p><div class="choice-grid">${pairs.concat(pairs).map((p,i)=>`<button class="choice" id="mem${i}" onclick="memoryPick(${i})">❔</button>`).join("")}</div><div class="feedback" id="memFeedback"></div>`;window.memoryPairs=pairs.concat(pairs).sort(()=>Math.random()-.5)}
+else if(currentGame==="sentence"){body=`<div class="note"><h3>Susun perkataan menjadi ayat.</h3><p>Pilih perkataan mengikut urutan yang betul.</p><div class="choice-grid">${["Saya","baca","buku"].map(x=>`<button class="choice" onclick="sentencePick('${x}')">${x}</button>`).join("")}</div><div id="sentenceOut" class="feedback">Ayat: </div><button class="btn green" onclick="checkSentence()">Semak ayat</button>`}
+$("#screen").innerHTML=shell(title,`<div class="topline"><span class="pill">Soalan ${qIndex+1} / 10</span><span class="pill">Betul: ${correct}</span></div><div class="progress"><span style="width:${qIndex*10}%"></span></div>${body}<div id="feedback" class="feedback"></div><div style="text-align:center"><button class="btn" onclick="nextQuestion()">Seterusnya →</button><button class="btn red" onclick="go('activities')">Keluar aktiviti</button></div>`,"activities")}
+function answer(got,want){let f=$("#feedback");if(!f)return;if(got===want){f.textContent="Betul! Hebat, teruskan membaca! ⭐";f.style.color="#23864b";correct++;award(1);if(qIndex===0&&data.unlocked<2)data.unlocked=2}else{f.textContent="Cuba lagi. Kamu boleh berjaya!";f.style.color="#bd4439"}save()}
+function nextQuestion(){if(qIndex>=9){$("#screen").innerHTML=shell("TAHNIAH!",`<div style="text-align:center"><div style="font-size:75px">🏆🌟</div><h2>Kamu berjaya!</h2><p>Jawapan betul: ${correct} daripada 10.</p><button class="btn green" onclick="go('activities')">Pilih aktiviti lain</button><button class="btn blue" onclick="go('map')">Kembali ke peta</button></div>`);data.done.push(currentGame);save();return}qIndex++;game()}
+function speak(t,rate=0.8){if(!("speechSynthesis"in window)){alert("Audio sebutan tidak disokong oleh pelayar ini.");return}speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="ms-MY";u.rate=rate;speechSynthesis.speak(u)}
+function spinWheel(){let w=words[Math.floor(Math.random()*words.length)];$("#wheel").style.transform=`rotate(${720+Math.random()*360}deg)`;setTimeout(()=>{$("#wheelResult").innerHTML=`Perkataan kamu: <b>${w[2]}</b> ${w[3]} <button class="btn" onclick="speak('${w[2]}')">🔊 Dengar</button>`},900)}
+let sentence=[];
+function sentencePick(w){sentence.push(w);$("#sentenceOut").textContent="Ayat: "+sentence.join(" ")}
+function checkSentence(){let f=$("#feedback");if(sentence.join(" ")==="Saya baca buku"){f.textContent="Betul! Kamu berjaya membina ayat.";award(2)}else f.textContent="Cuba susun semula perkataan.";sentence=[]}
+function memoryPick(i){if(memoryOpen.includes(i)||memoryDone.includes(i))return;memoryOpen.push(i);let p=window.memoryPairs[i];$("#mem"+i).textContent=p[0]+" "+p[1];if(memoryOpen.length===2){let [a,b]=memoryOpen;if(window.memoryPairs[a][1]===window.memoryPairs[b][1]){memoryDone.push(a,b);$("#memFeedback").textContent="Pasangan betul!";award(1)}else setTimeout(()=>{[a,b].forEach(k=>$("#mem"+k).textContent="❔");},700);memoryOpen=[]}}
+function profile(){$("#screen").innerHTML=shell("PROFIL PEMAIN",`<div class="cards"><div class="card">${mascot(data.character)}<h3>${data.name}</h3><p>Tahap ${data.level}</p><p>XP: ${data.xp}</p></div><div class="card"><h3>⭐ ${data.stars}</h3><p>Bintang</p><h3>🍌 ${data.coins}</h3><p>Syiling</p><h3>🏅 ${data.done.length}</h3><p>Aktiviti dimainkan</p></div></div><div class="note"><label>Nama panggilan pemain</label><br><input id="playerName" value="${data.name}" maxlength="24"><button class="btn green" onclick="data.name=$('#playerName').value.trim()||'Pengembara Cilik';save();profile()">Simpan nama</button></div>`)}
+function collection(){$("#screen").innerHTML=shell("KOLEKSI PEMAIN",`<div class="cards">${["⭐ Bintang pengembaraan","🍌 Pisang emas","📘 Buku ajaib","🗝️ Kunci rahsia","🏅 Lencana pembaca","🎒 Beg pengembara"].map(x=>`<div class="card"><h3>${x}</h3><p class="small">Koleksi pengembaraan</p></div>`).join("")}</div>`)}
+function achievements(){$("#screen").innerHTML=shell("PENCAPAIAN",`<div class="cards"><div class="card">🌱<h3>Pembaca Baharu</h3><p>Mulakan pengembaraan.</p><b>${data.done.length>0?"✓ Dicapai":"Belum dicapai"}</b></div><div class="card">📚<h3>Rakan Membaca</h3><p>Selesaikan 5 aktiviti.</p><b>${data.done.length>=5?"✓ Dicapai":"Belum dicapai"}</b></div><div class="card">🌟<h3>Pengumpul Bintang</h3><p>Kumpul 10 bintang.</p><b>${data.stars>=10?"✓ Dicapai":"Belum dicapai"}</b></div></div>`)}
+function certificate(){$("#screen").innerHTML=shell("SIJIL DIGITAL",`<div class="panel" style="text-align:center;background:#fffdf0"><div style="font-size:55px">🏅</div><h1 style="font-size:36px">SIJIL PEMBACA HEBAT</h1><h2>Tahniah, ${data.name}!</h2><p>Telah menyertai pengembaraan literasi JOM BACA! ADVENTURE.</p><p>Aktiviti diselesaikan: ${data.done.length}</p><p>Jumlah bintang: ${data.stars}</p><button class="btn blue" onclick="window.print()">Cetak / Simpan PDF</button></div>`)}
+function settings(){$("#screen").innerHTML=shell("TETAPAN PERMAINAN",`<div class="note"><h3>Audio sebutan</h3><button class="btn" onclick="speak('Selamat datang ke Jom Baca Adventure')">Uji audio</button><button class="btn" onclick="speechSynthesis.cancel()">Hentikan audio</button></div><div class="note"><h3>Pengurusan data</h3><p class="small">Kemajuan disimpan dalam pelayar pada peranti ini sahaja. Data tidak diselaraskan secara automatik antara peranti.</p><button class="btn red" onclick="if(confirm('Padam semua kemajuan permainan? Tindakan ini tidak boleh dibatalkan.')){localStorage.removeItem('jombaca-save');location.reload()}">Padam data permainan</button></div>`)}
+
+/* ===== MODUL PENGEMBARAAN 2.5D — VERSI 2 ===== */
+const adventureWorlds=[
+ {emoji:"🏡",name:"Gru's House",desc:"Mulakan misi dan cari buku petunjuk.",sky:"#9bdcf4",ground:"#79bd75"},
+ {emoji:"🌙",name:"Moon World",desc:"Kumpulkan perkataan bercahaya di bulan.",sky:"#273b78",ground:"#6976a9"},
+ {emoji:"🚀",name:"Outer Space",desc:"Teroka planet dan baiki kapal angkasa.",sky:"#252c64",ground:"#4b65a5"},
+ {emoji:"🧪",name:"Secret Laboratory",desc:"Aktifkan mesin bahasa yang misteri.",sky:"#9edbd4",ground:"#71b98b"},
+ {emoji:"🏙️",name:"City World",desc:"Baca papan tanda untuk membantu penduduk.",sky:"#8ed5ef",ground:"#8cbd82"},
+ {emoji:"🌋",name:"Volcano World",desc:"Cari laluan selamat dan susun suku kata.",sky:"#eaa17d",ground:"#a86b57"},
+ {emoji:"🏰",name:"Villain Castle",desc:"Selesaikan teka-teki di istana.",sky:"#a9a4d9",ground:"#6d9c7b"},
+ {emoji:"🐠",name:"Underwater World",desc:"Cari perkataan di dasar laut.",sky:"#5dc6df",ground:"#3a9e9d"},
+ {emoji:"🌆",name:"Futuristic City",desc:"Pulihkan papan bacaan digital.",sky:"#788fce",ground:"#637c9a"},
+ {emoji:"🌈",name:"JOM BACA! World",desc:"Raikan kejayaan sebagai pembaca hebat.",sky:"#a5e3f4",ground:"#79c88b"}
+];
+if(!data.inventory)data.inventory=[];
+if(!data.missions)data.missions={talk:false,collect:false,read:false};
+if(!data.currentWorld)data.currentWorld=0;
+let adv={x:145,y:180,dir:1,keys:{},jump:0,frame:0,items:[],npc:{x:570,y:180},last:0,world:0,toast:"",touchX:0,touchY:0};
+
+function notify(msg){let t=document.getElementById("toast");if(!t){t=document.createElement("div");t.id="toast";document.body.appendChild(t)}t.textContent=msg;t.style.display="block";clearTimeout(window._toastTimer);window._toastTimer=setTimeout(()=>t.style.display="none",2100)}
+function map(){
+ const cards=adventureWorlds.map((w,i)=>`<button class="map-world-card ${i>=data.unlocked?'locked':''}" onclick="${i<data.unlocked?`enterWorld(${i})`:`lockedWorld()`}"><span class="world-emoji">${w.emoji}</span><strong>${i+1}. ${w.name}</strong><small>${i<data.unlocked?'✓ Kawasan dibuka':'🔒 Selesaikan misi terdahulu'}</small><p class="small">${w.desc}</p></button>`).join("");
+ $("#screen").innerHTML=shell("PETA DUNIA PENGEMBARAAN",`<p class="sub">Pilih kawasan yang telah dibuka. Setiap dunia mempunyai tugasan dan objek untuk dikumpulkan.</p><div class="world-grid">${cards}</div><div class="note">🌟 Bintang: ${data.stars} · 🎒 Koleksi: ${data.inventory.length} · 🗺 Dunia dibuka: ${data.unlocked}/10</div>`);
+}
+function enterWorld(i){if(i>=data.unlocked){notify("Dunia ini masih berkunci.");return}data.currentWorld=i;save();explore()}
+function explore(){
+ const w=adventureWorlds[data.currentWorld||0];
+ adv.world=data.currentWorld||0;adv.x=115;adv.y=215;adv.frame=0;adv.items=[
+  {x:340,y:150,emoji:"⭐",name:"Bintang",got:false},
+  {x:505,y:245,emoji:"📘",name:"Buku ajaib",got:false},
+  {x:730,y:125,emoji:"🍌",name:"Pisang emas",got:false},
+  {x:865,y:245,emoji:"✨",name:"Kristal",got:false}
+ ];
+ adv.npc={x:610,y:205};
+ const missions=[
+  ["Bercakap dengan penjaga kawasan","Dekati watak pembantu dan tekan TINDAKAN."],
+  ["Kumpulkan dua objek","Cari bintang, buku, pisang atau kristal di kawasan ini."],
+  ["Selesaikan cabaran membaca","Bina perkataan KV + KV dengan betul."]
+ ];
+ $("#screen").innerHTML=shell(`PENGEMBARAAN — ${w.name.toUpperCase()}`,`
+ <div class="adventure-wrap">
+  <div>
+   <div class="game-stage" style="padding:8px">
+    <canvas id="worldCanvas" class="world-canvas" width="960" height="500" aria-label="Kawasan pengembaraan interaktif"></canvas>
+   </div>
+   <div class="control-pad">
+    <button class="btn" onpointerdown="holdMove('left')" onpointerup="releaseMove()" onpointerleave="releaseMove()">◀</button>
+    <button class="btn" onpointerdown="holdMove('right')" onpointerup="releaseMove()" onpointerleave="releaseMove()">▶</button>
+    <button class="btn blue" onclick="jumpAdventure()">⬆ LOMPAT</button>
+    <button class="btn green" onclick="interactAdventure()">✦ TINDAKAN</button>
+   </div>
+   <p class="small">Komputer: A/D atau anak panah untuk bergerak, W/↑/ruang untuk melompat, E untuk tindakan. Telefon: gunakan butang di bawah kawasan permainan.</p>
+  </div>
+  <aside class="side-panel">
+   <h3>📜 Misi kawasan</h3>
+   <div class="quest-list" id="questList">${missions.map((m,i)=>`<div class="quest ${i===0&&data.missions.talk?'done':''}" id="quest${i}">${i===0&&data.missions.talk?'✓':i+1+'.'} ${m[0]}<br><small>${m[1]}</small></div>`).join("")}</div>
+   <h3 style="margin-top:15px">🎒 Beg pengembara</h3>
+   <div id="inventoryText" class="note">${data.inventory.length?data.inventory.slice(-5).join(" · "):"Belum ada objek dikumpulkan."}</div>
+   <button class="btn blue" style="width:100%" onclick="startGame('build')">📚 Cabaran KV + KV</button>
+   <button class="btn" style="width:100%" onclick="map()">🗺 Kembali ke peta</button>
+  </aside>
+ </div>`);
+ startWorldCanvas();
+}
+function holdMove(dir){adv.keys[dir]=true}
+function releaseMove(){adv.keys.left=false;adv.keys.right=false}
+function jumpAdventure(){if(adv.jump===0)adv.jump=1}
+function interactAdventure(){
+ let d=Math.abs(adv.x-adv.npc.x);
+ if(d<115){
+  if(!data.missions.talk){data.missions.talk=true;updateQuest();notify("Penjaga: Bantu saya kumpulkan objek dan baca perkataan!");speak("Selamat datang. Mari kita membaca bersama.");}
+  else if(!data.missions.collect){notify("Cari sekurang-kurangnya dua objek di kawasan ini.");}
+  else {notify("Bagus! Sekarang cuba cabaran suku kata.");}
+ }else notify("Bergerak lebih dekat kepada watak pembantu atau objek.");
+}
+function updateQuest(){
+ let q=$("#quest0");if(q){q.classList.toggle("done",data.missions.talk);q.innerHTML=(data.missions.talk?"✓":"1.")+" Bercakap dengan penjaga kawasan";}
+ q=$("#quest1");if(q){q.classList.toggle("done",data.missions.collect);q.innerHTML=(data.missions.collect?"✓":"2.")+" Kumpulkan dua objek";}
+ q=$("#quest2");if(q){q.classList.toggle("done",data.missions.read);q.innerHTML=(data.missions.read?"✓":"3.")+" Selesaikan cabaran membaca";}
+ let inv=$("#inventoryText");if(inv)inv.textContent=data.inventory.slice(-5).join(" · ")||"Belum ada objek dikumpulkan.";
+}
+function startWorldCanvas(){
+ const canvas=$("#worldCanvas");if(!canvas)return;
+ const ctx=canvas.getContext("2d"),w=adventureWorlds[adv.world];
+ function rounded(x,y,ww,hh,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,ww,hh,r);ctx.fill()}
+ function draw(){
+  if(!document.getElementById("worldCanvas"))return;
+  const cw=canvas.width,ch=canvas.height;
+  ctx.clearRect(0,0,cw,ch);
+  let sky=ctx.createLinearGradient(0,0,0,ch);sky.addColorStop(0,w.sky);sky.addColorStop(1,"#e4f6e9");ctx.fillStyle=sky;ctx.fillRect(0,0,cw,ch);
+  // awan dan bukit berlapis
+  ctx.fillStyle="#ffffffaa";for(let i=0;i<5;i++){let x=((i*225-adv.frame*.15)%1100+1100)%1100-60;ctx.beginPath();ctx.arc(x,75+(i%2)*35,28,0,7);ctx.arc(x+30,68+(i%2)*35,35,0,7);ctx.arc(x+65,78+(i%2)*35,25,0,7);ctx.fill()}
+  ctx.fillStyle="#8ecb91";ctx.beginPath();ctx.moveTo(0,310);ctx.quadraticCurveTo(180,220,360,310);ctx.quadraticCurveTo(560,220,760,310);ctx.quadraticCurveTo(860,250,960,300);ctx.lineTo(960,500);ctx.lineTo(0,500);ctx.fill();
+  ctx.fillStyle=w.ground;ctx.fillRect(0,340,cw,160);
+  // laluan batu
+  ctx.fillStyle="#d8c59a";ctx.beginPath();ctx.moveTo(0,390);ctx.quadraticCurveTo(400,335,960,410);ctx.lineTo(960,500);ctx.lineTo(0,500);ctx.fill();
+  for(let i=0;i<15;i++){rounded(i*75-adv.frame*.25%75,420+(i%3)*14,48,12,6,"#f2e2bd")}
+  // pokok hiasan
+  for(let i=0;i<8;i++){let x=i*140+35;ctx.fillStyle="#805638";ctx.fillRect(x,260,15,100);ctx.fillStyle=["#398d61","#4ca66d","#70b96b"][i%3];ctx.beginPath();ctx.arc(x+7,250,43,0,7);ctx.fill();ctx.beginPath();ctx.arc(x-12,270,28,0,7);ctx.fill()}
+  // pondok dan papan tanda
+  rounded(725,225,130,112,12,"#e9a95c");ctx.fillStyle="#9a5c38";ctx.beginPath();ctx.moveTo(705,230);ctx.lineTo(790,165);ctx.lineTo(875,230);ctx.fill();rounded(775,275,35,62,6,"#865337");
+  rounded(35,250,180,55,12,"#fff0bd");ctx.fillStyle="#75451e";ctx.font="bold 22px Trebuchet MS";ctx.fillText("KAWASAN MISTERI",47,284);
+  // NPC
+  drawPerson(adv.npc.x,adv.npc.y,"#e98eb1",false);
+  // collectible items
+  adv.items.forEach(it=>{if(!it.got){ctx.font="38px serif";ctx.fillText(it.emoji,it.x,it.y+Math.sin(adv.frame/12+it.x)*5);}});
+  // avatar
+  drawPerson(adv.x,adv.y,characterData[data.character].shirt,true);
+  // label
+  rounded(15,15,230,42,12,"#ffffffdf");ctx.fillStyle="#244d68";ctx.font="bold 18px Trebuchet MS";ctx.fillText(w.name,29,43);
+  ctx.font="16px Trebuchet MS";ctx.fillText("Cari objek dan bantu penjaga!",cw-315,43);
+  adv.frame++;
+  if(adv.keys.left){adv.x=Math.max(38,adv.x-3.2);adv.dir=-1}
+  if(adv.keys.right){adv.x=Math.min(920,adv.x+3.2);adv.dir=1}
+  if(adv.jump>0){adv.jump+=.12;if(adv.jump>Math.PI)adv.jump=0}
+  // collect near
+  adv.items.forEach(it=>{if(!it.got&&Math.hypot(adv.x-it.x,adv.y-it.y)<58){it.got=true;data.inventory.push(it.name);award(1);notify("Objek dikumpulkan: "+it.name+"!");if(adv.items.filter(x=>x.got).length>=2){data.missions.collect=true;updateQuest();if(data.unlocked<2)data.unlocked=2;}save();}});
+  requestAnimationFrame(draw);
+ }
+ function drawPerson(x,y,color,isPlayer){
+  let jumpY=isPlayer&&adv.jump>0?Math.sin(adv.jump)*75:0;
+  ctx.save();ctx.translate(x,y-jumpY);if(isPlayer&&adv.dir<0)ctx.scale(-1,1);
+  ctx.fillStyle="#0003";ctx.beginPath();ctx.ellipse(0,37,27,8,0,0,7);ctx.fill();
+  ctx.fillStyle="#f1c28c";ctx.beginPath();ctx.arc(0,-5,24,0,7);ctx.fill();
+  ctx.fillStyle=isPlayer?"#5b392b":"#71452f";ctx.beginPath();ctx.arc(0,-15,25,Math.PI,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-8,-5,7,0,7);ctx.arc(8,-5,7,0,7);ctx.fill();ctx.fillStyle="#3d332c";ctx.beginPath();ctx.arc(-7,-4,3,0,7);ctx.arc(9,-4,3,0,7);ctx.fill();
+  ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(-22,19,44,36,10);ctx.fill();
+  ctx.strokeStyle="#704a32";ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-9,50);ctx.lineTo(-12,66);ctx.moveTo(9,50);ctx.lineTo(12,66);ctx.stroke();
+  ctx.restore();
+ }
+ requestAnimationFrame(draw);
+}
+window.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")adv.keys.left=true;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")adv.keys.right=true;if(e.key===" "||e.key==="ArrowUp"||e.key.toLowerCase()==="w")jumpAdventure();if(e.key.toLowerCase()==="e")interactAdventure()});
+window.addEventListener("keyup",e=>{if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")adv.keys.left=false;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")adv.keys.right=false});
+/* Menyambung hasil aktiviti dengan objektif pengembaraan */
+const oldNextQuestion=nextQuestion;
+nextQuestion=function(){
+ if(qIndex>=9){
+  data.missions.read=true;data.unlocked=Math.min(10,Math.max(data.unlocked,Math.floor(data.done.length/2)+2));
+  save();
+ }
+ oldNextQuestion();
+};
+
+
+/* ===== V3: PENGEMBARAAN SIDE-SCROLL 2.5D ===== */
+const worldScenes=[
+ {sky:"#9bdcf4",far:"#a7d9bb",near:"#72b77e",ground:"#7fbd73",decor:"house"},
+ {sky:"#202a67",far:"#626ca6",near:"#414c87",ground:"#7778a5",decor:"moon"},
+ {sky:"#171d4e",far:"#343d82",near:"#4c5595",ground:"#424c8d",decor:"space"},
+ {sky:"#b8e8df",far:"#9ac9a5",near:"#6eae85",ground:"#72b783",decor:"lab"},
+ {sky:"#8bd7f2",far:"#9abbd4",near:"#729c9c",ground:"#81b978",decor:"city"},
+ {sky:"#f3a17b",far:"#bd7466",near:"#8e5b55",ground:"#aa7057",decor:"volcano"},
+ {sky:"#aaa2d8",far:"#807bb1",near:"#596b91",ground:"#6e9a7b",decor:"castle"},
+ {sky:"#55c9df",far:"#3d9cb6",near:"#287e9e",ground:"#318f91",decor:"underwater"},
+ {sky:"#718bd1",far:"#586fae",near:"#3f568c",ground:"#607b9c",decor:"future"},
+ {sky:"#b7e9f5",far:"#b6dfa7",near:"#82c88b",ground:"#80c77d",decor:"rainbow"}
+];
+adv.camera=0;adv.worldWidth=2100;adv.collected=0;adv.checkpoint=0;adv.lastAction=0;
+
+function map(){
+ const cards=adventureWorlds.map((w,i)=>`<button class="map-world-card ${i>=data.unlocked?'locked':''}" onclick="${i<data.unlocked?`enterWorld(${i})`:`lockedWorld()`}"><span class="world-emoji">${w.emoji}</span><strong>${i+1}. ${w.name}</strong><small>${i<data.unlocked?'✓ Boleh diterokai':'🔒 Selesaikan misi terdahulu'}</small><p class="small">${w.desc}</p></button>`).join("");
+ $("#screen").innerHTML=shell("PETA DUNIA PENGEMBARAAN",`<p class="sub">Pilih dunia yang telah dibuka. Setiap dunia mempunyai landskap, objek dan cabaran membaca yang berbeza.</p><div class="world-grid">${cards}</div><div class="note">⭐ ${data.stars} bintang · 🪙 ${data.coins} syiling · 🌍 ${data.unlocked}/10 dunia dibuka</div>`);
+}
+function enterWorld(i){
+ if(i>=data.unlocked){notify("Dunia ini masih berkunci. Selesaikan misi membaca dahulu.");return}
+ data.currentWorld=i;data.missions={talk:false,collect:false,read:false};save();explore();
+}
+function explore(){
+ const w=adventureWorlds[data.currentWorld||0];
+ adv.world=data.currentWorld||0;adv.x=100;adv.y=330;adv.dir=1;adv.camera=0;adv.jump=0;adv.frame=0;adv.keys={};adv.collected=0;adv.worldWidth=2100;
+ adv.items=[
+  {x:370,y:285,emoji:"⭐",name:"Bintang cahaya",got:false},
+  {x:700,y:300,emoji:"📘",name:"Buku petunjuk",got:false},
+  {x:1050,y:260,emoji:"🍌",name:"Buah emas",got:false},
+  {x:1430,y:300,emoji:"💎",name:"Kristal bahasa",got:false},
+  {x:1770,y:250,emoji:"🗝️",name:"Kunci portal",got:false}
+ ];
+ adv.npc={x:560,y:330};
+ $("#screen").innerHTML=shell(`PENGEMBARAAN — ${w.name.toUpperCase()}`,`
+ <div class="adventure-wrap">
+  <div>
+   <div class="game-stage" style="padding:8px"><canvas id="worldCanvas" class="world-canvas" width="960" height="500" aria-label="Permainan pengembaraan sisi 2.5D"></canvas></div>
+   <div class="control-pad">
+    <button class="btn" onpointerdown="holdMove('left')" onpointerup="releaseMove()" onpointerleave="releaseMove()" ontouchend="releaseMove()">◀</button>
+    <button class="btn" onpointerdown="holdMove('right')" onpointerup="releaseMove()" onpointerleave="releaseMove()" ontouchend="releaseMove()">▶</button>
+    <button class="btn blue" onclick="jumpAdventure()">⬆ LOMPAT</button>
+    <button class="btn green" onclick="interactAdventure()">✦ TINDAKAN</button>
+   </div>
+   <p class="small">Komputer: A/D atau anak panah untuk bergerak, W/↑/ruang untuk melompat, E untuk tindakan. Telefon: tekan dan tahan butang arah.</p>
+  </div>
+  <aside class="side-panel">
+   <h3>📜 Misi pengembaraan</h3>
+   <div class="quest-list">
+    <div class="quest" id="quest0">1. Berjumpa penjaga kawasan</div>
+    <div class="quest" id="quest1">2. Kumpulkan sekurang-kurangnya 3 objek</div>
+    <div class="quest" id="quest2">3. Selesaikan cabaran membaca</div>
+   </div>
+   <div class="mission-meter"><span id="missionProgress"></span></div>
+   <div class="action-hint" id="actionHint">Petunjuk: bergerak ke arah watak pembantu dan tekan TINDAKAN.</div>
+   <h3 style="margin-top:15px">🎒 Beg pengembara</h3>
+   <div id="inventoryText" class="note">${data.inventory.slice(-6).join(" · ")||"Belum ada objek dikumpulkan."}</div>
+   <button class="btn blue" style="width:100%" onclick="startGame('build')">📚 Cabaran KV + KV</button>
+   <button class="btn" style="width:100%" onclick="map()">🗺 Kembali ke peta</button>
+  </aside>
+ </div>`);
+ startWorldCanvas();
+ updateQuest();
+}
+function holdMove(dir){adv.keys[dir]=true}
+function releaseMove(){adv.keys.left=false;adv.keys.right=false}
+function jumpAdventure(){if(!adv.jump)adv.jump=1}
+function interactAdventure(){
+ const d=Math.abs(adv.x-adv.npc.x);
+ const nearPortal=adv.x>1950;
+ if(d<125){
+  if(!data.missions.talk){data.missions.talk=true;notify("Penjaga: Terima kasih kerana datang! Kumpulkan tiga objek ajaib.");speak("Selamat datang. Kumpulkan tiga objek ajaib dan selesaikan cabaran membaca.");}
+  else if(data.missions.collect&&!data.missions.read){notify("Hebat! Sekarang selesaikan cabaran KV tambah KV.");startGame("build");}
+  else if(data.missions.read){notify("Misi dunia ini selesai! Portal telah diaktifkan.");}
+  else notify("Teruskan mencari tiga objek di kawasan ini.");
+ }else if(nearPortal){
+  if(data.missions.talk&&data.missions.collect&&data.missions.read){
+   data.unlocked=Math.min(10,Math.max(data.unlocked,adv.world+2));save();notify("Portal dibuka! Dunia seterusnya kini tersedia.");map();
+  }else notify("Portal belum aktif. Selesaikan ketiga-tiga misi dahulu.");
+ }else notify("Cari penjaga kawasan, objek bercahaya atau portal di hujung laluan.");
+ updateQuest();
+}
+function updateQuest(){
+ const states=[data.missions.talk,data.missions.collect,data.missions.read];
+ const labels=["Berjumpa penjaga kawasan","Kumpulkan sekurang-kurangnya 3 objek","Selesaikan cabaran membaca"];
+ states.forEach((v,i)=>{let q=document.getElementById("quest"+i);if(q){q.classList.toggle("done",!!v);q.textContent=(v?"✓":(i+1)+".")+" "+labels[i]}});
+ let meter=document.getElementById("missionProgress");if(meter)meter.style.width=(states.filter(Boolean).length/3*100)+"%";
+ let hint=document.getElementById("actionHint");if(hint)hint.textContent=!states[0]?"Petunjuk: dekati penjaga dan tekan TINDAKAN.":!states[1]?"Petunjuk: teroka laluan dan kumpulkan tiga objek.":!states[2]?"Petunjuk: lengkapkan cabaran membaca KV + KV.":"Semua misi selesai! Pergi ke portal di hujung laluan.";
+ let inv=document.getElementById("inventoryText");if(inv)inv.textContent=data.inventory.slice(-6).join(" · ")||"Belum ada objek dikumpulkan.";
+}
+function startWorldCanvas(){
+ const canvas=document.getElementById("worldCanvas");if(!canvas)return;
+ const ctx=canvas.getContext("2d"),scene=worldScenes[adv.world]||worldScenes[0];
+ const W=canvas.width,H=canvas.height;
+ function circle(x,y,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+ function person(x,y,shirt,player=false){
+  ctx.save();ctx.translate(x,y-(player&&adv.jump?Math.sin(adv.jump)*95:0));
+  if(player&&adv.dir<0)ctx.scale(-1,1);
+  ctx.fillStyle="#0003";ctx.beginPath();ctx.ellipse(0,5,27,8,0,0,7);ctx.fill();
+  // Watak asli: pengembara kecil berambut unik, bukan watak francais sedia ada
+  ctx.fillStyle="#f0bd91";ctx.beginPath();ctx.arc(0,-37,23,0,7);ctx.fill();
+  ctx.fillStyle=player?"#563b32":"#80563c";ctx.beginPath();ctx.arc(-2,-49,24,Math.PI,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-8,-38,7,0,7);ctx.arc(8,-38,7,0,7);ctx.fill();
+  circle(-7,-37,3,"#47352b");circle(9,-37,3,"#47352b");
+  ctx.strokeStyle="#9a5146";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(1,-29,7,.15,Math.PI-.15);ctx.stroke();
+  ctx.fillStyle=shirt;ctx.beginPath();ctx.roundRect(-23,-15,46,37,12);ctx.fill();
+  ctx.strokeStyle="#684a38";ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-10,18);ctx.lineTo(-12,34);ctx.moveTo(10,18);ctx.lineTo(12,34);ctx.stroke();
+  ctx.restore();
+ }
+ function draw(){
+  if(!document.getElementById("worldCanvas"))return;
+  ctx.clearRect(0,0,W,H);
+  let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,scene.sky);g.addColorStop(1,"#e9f7ec");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // Bintang/gelembung mengikut tema
+  for(let i=0;i<30;i++){
+   let x=((i*137-adv.camera*.18)%W+W)%W,y=35+(i*47)%210;
+   circle(x,y,((i%3)+1),i%2?"#ffffff99":"#ffe8a399");
+  }
+  // lapisan bukit jauh dan dekat
+  ctx.fillStyle=scene.far;ctx.beginPath();ctx.moveTo(0,315);
+  for(let x=0;x<=W+80;x+=80)ctx.lineTo(x,260+Math.sin((x+adv.camera*.2)/95)*34);
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+  ctx.fillStyle=scene.near;ctx.beginPath();ctx.moveTo(0,350);
+  for(let x=0;x<=W+80;x+=80)ctx.lineTo(x,310+Math.sin((x+adv.camera*.42)/125)*28);
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+  // tanah dan laluan
+  ctx.fillStyle=scene.ground;ctx.fillRect(0,365,W,135);
+  ctx.fillStyle="#d8c59a";ctx.beginPath();ctx.moveTo(0,402);ctx.lineTo(W,402);ctx.lineTo(W,455);ctx.lineTo(0,455);ctx.fill();
+  for(let x=0;x<W;x+=76){ctx.fillStyle="#f1dfba";ctx.beginPath();ctx.roundRect(x+((adv.camera*.5)%76),420,42,12,6);ctx.fill()}
+  ctx.save();ctx.translate(-adv.camera,0);
+  // Pokok dan bangunan berulang
+  for(let x=100;x<adv.worldWidth;x+=310){
+   if(scene.decor==="space"||scene.decor==="moon"){circle(x,215,48,"#aeb6d4");circle(x-15,198,12,"#858eaf");circle(x+18,225,9,"#858eaf")}
+   else if(scene.decor==="underwater"){for(let j=0;j<3;j++){ctx.strokeStyle=["#f5c66a","#80d4a5","#e99bb6"][j];ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(x+j*18,365);ctx.quadraticCurveTo(x-15+j*22,320,x+j*20,285);ctx.stroke()}}
+   else {ctx.fillStyle="#79533d";ctx.fillRect(x,270,18,100);circle(x+9,255,48,["#4e9b69","#67ad70","#82bd76"][Math.floor(x/310)%3]);}
+   if(scene.decor==="city"||scene.decor==="future"||scene.decor==="castle"||scene.decor==="house"||scene.decor==="lab"){
+    let bw=100+(Math.floor(x/310)%3)*28;ctx.fillStyle=scene.decor==="castle"?"#8d83bb":"#e8b879";ctx.fillRect(x+95,255,bw,112);
+    ctx.fillStyle="#fff0bd";ctx.fillRect(x+110,280,22,25);ctx.fillRect(x+145,280,22,25);
+    ctx.fillStyle="#9d6442";ctx.beginPath();ctx.moveTo(x+85,257);ctx.lineTo(x+150,205);ctx.lineTo(x+225,257);ctx.fill();
+   }
+  }
+  // NPC dan objek koleksi
+  person(adv.npc.x,adv.npc.y,"#e58db2",false);
+  adv.items.forEach(it=>{if(!it.got){ctx.font="39px serif";ctx.textAlign="center";ctx.fillText(it.emoji,it.x,it.y+Math.sin(adv.frame/12+it.x)*7)}});
+  // Portal di hujung dunia
+  ctx.fillStyle="#f5d66c";ctx.beginPath();ctx.ellipse(2020,330,42,70,0,0,7);ctx.fill();
+  ctx.fillStyle="#8c83d5";ctx.beginPath();ctx.ellipse(2020,330,27,57,0,0,7);ctx.fill();
+  ctx.fillStyle="#fff";ctx.font="bold 17px Trebuchet MS";ctx.textAlign="center";ctx.fillText("PORTAL",2020,420);
+  person(adv.x,adv.y,characterData[data.character].shirt,true);
+  ctx.restore();
+  // HUD
+  ctx.fillStyle="#ffffffdd";ctx.beginPath();ctx.roundRect(14,13,260,43,12);ctx.fill();
+  ctx.fillStyle="#244d68";ctx.font="bold 18px Trebuchet MS";ctx.textAlign="left";ctx.fillText(adventureWorlds[adv.world].name,27,41);
+  ctx.fillText("Objek: "+adv.collected+"/3",W-165,41);
+  // Gerakan dan kamera
+  if(adv.keys.left){adv.x=Math.max(35,adv.x-(adv.vehicle?7:4));adv.dir=-1}
+  if(adv.keys.right){adv.x=Math.min(adv.worldWidth-45,adv.x+(adv.vehicle?7:4));adv.dir=1}
+  if(adv.jump){adv.jump+=.105;if(adv.jump>Math.PI)adv.jump=0}
+  adv.camera=Math.max(0,Math.min(adv.worldWidth-W,adv.x-W*.42));
+  adv.items.forEach(it=>{
+   if(!it.got&&Math.hypot(adv.x-it.x,adv.y-it.y)<60){
+    it.got=true;adv.collected++;data.inventory.push(it.name);award(1);notify("Objek dikumpulkan: "+it.name+"!");
+    if(adv.collected>=3){data.missions.collect=true;updateQuest();speak("Bagus! Kamu sudah mengumpulkan tiga objek.");}
+    save();updateQuest();
+   }
+  });
+  adv.frame++;requestAnimationFrame(draw);
+ }
+ requestAnimationFrame(draw);
+}
+window.addEventListener("keydown",e=>{
+ if(["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key))e.preventDefault();
+ if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")adv.keys.left=true;
+ if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")adv.keys.right=true;
+ if(e.key===" "||e.key==="ArrowUp"||e.key.toLowerCase()==="w")jumpAdventure();
+ if(e.key.toLowerCase()==="e")interactAdventure();
+});
+window.addEventListener("keyup",e=>{
+ if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")adv.keys.left=false;
+ if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")adv.keys.right=false;
+});
+const previousNextQuestionV3=nextQuestion;
+nextQuestion=function(){
+ const finishing=qIndex>=4;
+ if(finishing){
+  data.missions.read=true;
+  award(2);
+  data.unlocked=Math.max(data.unlocked,Math.min(10,(data.currentWorld||0)+2));
+  save();
+ }
+ previousNextQuestionV3();
+ if(finishing)notify("Misi membaca selesai! Dua bintang bonus diberikan.");
+};
+
+
+/* VERSI 4: RUANG DALAMAN, KENDERAAN, KEDAI DAN CABARAN PENJAGA */
+if(!data.ownedItems)data.ownedItems=["Pakaian Pengembara"];
+if(!data.equipped)data.equipped="Pakaian Pengembara";
+if(!data.inventory)data.inventory=[];
+if(!data.missions)data.missions={talk:false,collect:false,read:false};
+adv.vehicle=false;
+
+function shop(){
+ const items=[
+  {name:"Jubah Bintang",art:"🧥",cost:18,desc:"Pakaian berkilau untuk pengembara."},
+  {name:"Topi Daun",art:"👒",cost:12,desc:"Topi comel untuk meneroka hutan."},
+  {name:"Skuter Awan",art:"🛴",cost:30,desc:"Kenderaan kecil yang bergerak pantas."},
+  {name:"Beg Buku",art:"🎒",cost:15,desc:"Beg untuk menyimpan koleksi."},
+  {name:"Tongkat Cahaya",art:"🪄",cost:22,desc:"Aksesori pengembaraan ajaib."}
+ ];
+ $("#screen").innerHTML=shell("KEDAI PENGEMBARA",`<div class="note"><b>🪙 Syiling kamu: ${data.coins}</b><p class="small">Gunakan syiling yang dikumpulkan untuk mendapatkan aksesori. Item yang dibeli disimpan dalam profil.</p></div><div class="v4-grid">${items.map(it=>`<div class="shop-item"><div class="item-art">${it.art}</div><h3>${it.name}</h3><p class="small">${it.desc}</p><b>🪙 ${it.cost}</b><br>${data.ownedItems.includes(it.name)?`<button class="btn green" onclick="equipItem('${it.name}')">${data.equipped===it.name?"Sedang dipakai":"Pakai item"}</button>`:`<button class="btn blue" onclick="buyItem('${it.name}',${it.cost})">Beli</button>`}</div>`).join("")}</div>`);
+}
+function buyItem(name,cost){
+ if(data.ownedItems.includes(name)){notify("Item ini sudah dimiliki.");return}
+ if(data.coins<cost){notify("Syiling belum mencukupi. Selesaikan aktiviti untuk mendapat ganjaran.");return}
+ data.coins-=cost;data.ownedItems.push(name);save();notify(name+" berjaya dibeli!");shop();
+}
+function equipItem(name){if(!data.ownedItems.includes(name))return;data.equipped=name;save();notify(name+" kini dipakai.");shop()}
+
+const exploreV3=explore;
+explore=function(){
+ exploreV3();
+ setTimeout(()=>{
+  const panel=document.querySelector(".side-panel");
+  if(!panel)return;
+  const extra=document.createElement("div");
+  extra.id="v4ExploreActions";
+  extra.innerHTML=`<h3 style="margin-top:16px">🏡 Tempat & alat</h3>
+   <button class="btn" style="width:100%" onclick="enterRoom('Rumah Buku','Tempat membaca dan menyemak koleksi perkataan.')">📚 Masuk Rumah Buku</button>
+   <button class="btn" style="width:100%" onclick="enterRoom('Makmal Bahasa','Bantu penjaga mengaktifkan mesin suku kata.')">🧪 Masuk Makmal Bahasa</button>
+   <button class="btn" style="width:100%" onclick="toggleVehicle(this)">🛴 Naik skuter awan</button>
+   <button class="btn blue" style="width:100%" onclick="bossChallenge()">🏰 Cabaran Penjaga</button>`;
+  panel.appendChild(extra);
+ },0);
+};
+function enterRoom(name,description){
+ const roomItems=name==="Rumah Buku"?[
+  ["📗","buku","bu + ku"],["🪑","meja","me + ja"],["🧃","susu","su + su"]
+ ]:[
+  ["⚗️","buku","bu + ku"],["🧩","roti","ro + ti"],["🔤","susu","su + su"]
+ ];
+ $("#screen").innerHTML=shell(name.toUpperCase(),`<div class="room-scene"><div class="room-wall"><div style="font-size:48px">${name==="Rumah Buku"?"📚":"🧪"}</div><h2>${name}</h2><p>${description}</p><div class="room-shelf">${roomItems.map(x=>`<button class="room-object" onclick="speak('${x[1]}');notify('Kamu memilih ${x[1]}.')">${x[0]}<small>${x[1]}</small><small>${x[2]}</small></button>`).join("")}</div><p class="small">Tekan objek untuk mendengar sebutannya.</p></div></div><div class="control-pad"><button class="btn blue" onclick="startGame('audio')">🔊 Nota sebutan</button><button class="btn green" onclick="startGame('build')">🧩 Latihan membina perkataan</button><button class="btn" onclick="explore()">↩ Kembali ke pengembaraan</button></div>`);
+}
+function toggleVehicle(btn){
+ adv.vehicle=!adv.vehicle;
+ if(btn){btn.classList.toggle("vehicle-on",adv.vehicle);btn.textContent=adv.vehicle?"🛴 Turun skuter":"🛴 Naik skuter awan";}
+ notify(adv.vehicle?"Skuter awan diaktifkan. Pergerakan lebih pantas!":"Kamu berjalan semula.");
+}
+function bossChallenge(){
+ const questions=[
+  {q:"Suku kata manakah membentuk perkataan BUKU?",a:["bu + ku","ba + ju","su + su"],ok:0},
+  {q:"Pilih gabungan yang membentuk MATA.",a:["ma + ta","ba + ju","su + su"],ok:0},
+  {q:"Perkataan SUSU terdiri daripada...",a:["su + su","sa + si","si + su"],ok:0}
+ ];
+ let n=0,score=0;
+ function render(){
+  if(n>=questions.length){
+   const passed=score>=2;
+   if(passed){award(4);data.missions.read=true;data.unlocked=Math.max(data.unlocked,Math.min(10,(data.currentWorld||0)+2));save();}
+   $("#screen").innerHTML=shell("KEPUTUSAN CABARAN PENJAGA",`<div class="boss-card"><div style="font-size:65px">${passed?"🏆":"🌱"}</div><h2>${passed?"Cabaran berjaya!":"Teruskan berlatih!"}</h2><p>Jawapan betul: ${score} daripada 3.</p><p>${passed?"Penjaga memberikan 4 bintang dan membuka laluan baharu.":"Kamu boleh cuba lagi. Setiap latihan membantu kamu menjadi lebih mahir."}</p><button class="btn blue" onclick="explore()">Kembali ke dunia</button><button class="btn green" onclick="bossChallenge()">Cuba sekali lagi</button></div>`);
+   return;
+  }
+  const q=questions[n];
+  $("#screen").innerHTML=shell("CABARAN PENJAGA",`<div class="boss-card"><div style="font-size:55px">🦉</div><h2>Ujian Suku Kata</h2><p>Soalan ${n+1} daripada 3</p><h3>${q.q}</h3>${q.a.map((a,i)=>`<button class="boss-choice" onclick="answerBoss(${i})">${a}</button>`).join("")}<p id="bossFeedback" aria-live="polite"></p></div>`);
+ }
+ window.answerBoss=function(i){
+  const q=questions[n];
+  if(i===q.ok){score++;document.getElementById("bossFeedback").textContent="Betul! Bagus sekali.";speak("Betul. Bagus sekali.");}
+  else {document.getElementById("bossFeedback").textContent="Belum tepat. Cuba ingat bunyi suku kata.";speak("Belum tepat. Cuba lagi.");}
+  n++;setTimeout(render,650);
+ };
+ render();
+}
+
+
+/* ===== ENJIN PERMAINAN 2D — GAYA ILUSTRASI KARTUN ===== */
+function startWorldCanvas(){
+ const canvas=document.getElementById("worldCanvas"); if(!canvas)return;
+ const ctx=canvas.getContext("2d"), W=canvas.width,H=canvas.height;
+ const scene=worldScenes[adv.world]||worldScenes[0];
+ const palette=[
+  {sky:"#8bd8ff",hill:"#8bd18b",ground:"#69b85e",accent:"#f4c45b"},
+  {sky:"#777bd0",hill:"#9a9ce5",ground:"#7777b5",accent:"#ffe18a"},
+  {sky:"#26366f",hill:"#5869a8",ground:"#394c89",accent:"#8ce4ff"},
+  {sky:"#a8e7df",hill:"#8dd39b",ground:"#65b87c",accent:"#ffe17d"},
+  {sky:"#91dafa",hill:"#a8c9d8",ground:"#76b96e",accent:"#ffc86a"},
+  {sky:"#ffb18a",hill:"#c97862",ground:"#9f654d",accent:"#ffdf6e"},
+  {sky:"#bcb5ed",hill:"#9b9ad0",ground:"#6eaa7b",accent:"#ffe28a"},
+  {sky:"#63d7ee",hill:"#42aab9",ground:"#329c91",accent:"#ffdc79"},
+  {sky:"#8ba8e8",hill:"#758dc1",ground:"#597c9c",accent:"#a9f0ff"},
+  {sky:"#9ee8f2",hill:"#a7df9b",ground:"#70c77a",accent:"#ffcf5d"}
+ ][adv.world]||{sky:scene.sky,hill:scene.far,ground:scene.ground,accent:"#ffdc79"};
+ const circle=(x,y,r,c)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()};
+ function cloud(x,y,s=1){ctx.fillStyle="#ffffffd9";circle(x,y,18*s,ctx.fillStyle);circle(x+20*s,y-9*s,23*s,ctx.fillStyle);circle(x+43*s,y,17*s,ctx.fillStyle);ctx.fillRect(x-2*s,y,48*s,16*s)}
+ function tree(x,y){ctx.fillStyle="#8c5a39";ctx.fillRect(x-7,y-55,14,66);circle(x,y-70,32,"#3f9d61");circle(x-22,y-56,22,"#58b76d");circle(x+22,y-55,22,"#70c979");circle(x-10,y-84,17,"#78cf7d")}
+ function house(x,y){ctx.fillStyle="#f6c77d";ctx.fillRect(x,y-83,112,83);ctx.fillStyle="#b96748";ctx.beginPath();ctx.moveTo(x-12,y-80);ctx.lineTo(x+55,y-132);ctx.lineTo(x+124,y-80);ctx.closePath();ctx.fill();ctx.fillStyle="#fff0bd";ctx.fillRect(x+15,y-59,25,25);ctx.fillRect(x+72,y-59,25,25);ctx.fillStyle="#85533c";ctx.fillRect(x+47,y-42,22,42)}
+ function character(x,y,color,isPlayer=false){
+  ctx.save();ctx.translate(x,y-(isPlayer&&adv.jump?Math.sin(adv.jump)*78:0));if(isPlayer&&adv.dir<0)ctx.scale(-1,1);
+  ctx.fillStyle="#0003";ctx.beginPath();ctx.ellipse(0,2,25,7,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#f5c995";circle(0,-43,23,"#f5c995");
+  ctx.fillStyle=isPlayer?"#51362d":"#795039";ctx.beginPath();ctx.arc(0,-50,25,Math.PI,Math.PI*2);ctx.lineTo(24,-42);ctx.quadraticCurveTo(8,-56,-22,-39);ctx.closePath();ctx.fill();
+  circle(-8,-43,7,"#fff");circle(8,-43,7,"#fff");circle(-6,-42,3,"#3e332d");circle(10,-42,3,"#3e332d");
+  ctx.strokeStyle="#a64e42";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(1,-34,7,.15,Math.PI-.15);ctx.stroke();
+  ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(-22,-19,44,39,11);ctx.fill();
+  ctx.strokeStyle="#684a38";ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-10,17);ctx.lineTo(-12,32);ctx.moveTo(10,17);ctx.lineTo(12,32);ctx.stroke();
+  ctx.restore();
+ }
+ function draw(){
+  if(!document.getElementById("worldCanvas"))return;
+  ctx.clearRect(0,0,W,H);
+  let sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,palette.sky);sky.addColorStop(1,"#e9f8e6");ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  for(let i=0;i<5;i++)cloud(((i*245-adv.frame*.35)%1150+1150)%1150-60,55+(i%2)*45,.8+(i%3)*.12);
+  // Bukit dan rumput gaya kartun 2D
+  ctx.fillStyle=palette.hill;ctx.beginPath();ctx.moveTo(0,330);
+  for(let x=0;x<=W+40;x+=40)ctx.lineTo(x,270+Math.sin((x+adv.camera*.12)/95)*24);
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.fill();
+  ctx.fillStyle=palette.ground;ctx.fillRect(0,365,W,135);
+  ctx.fillStyle="#d9c18e";ctx.beginPath();ctx.moveTo(0,405);ctx.quadraticCurveTo(470,385,W,410);ctx.lineTo(W,458);ctx.quadraticCurveTo(470,433,0,455);ctx.fill();
+  ctx.save();ctx.translate(-adv.camera,0);
+  for(let x=30;x<adv.worldWidth;x+=300){
+   if(adv.world===1||adv.world===2){circle(x+80,245,45,"#d6d9ed");circle(x+63,229,10,"#aeb4d0");circle(x+96,258,13,"#aeb4d0")}
+   else if(adv.world===7){for(let j=0;j<3;j++){ctx.strokeStyle=["#f5c66a","#80d4a5","#e99bb6"][j];ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(x+40+j*16,365);ctx.quadraticCurveTo(x+10+j*20,320,x+40+j*18,285);ctx.stroke()}}
+   else {tree(x+70,365); if([0,3,4,6,8,9].includes(adv.world))house(x+145,365)}
+   if(adv.world===5){circle(x+220,315,22,"#f56d42");circle(x+250,330,13,"#ffce61")}
+  }
+  // Hiasan bunga kecil di tanah
+  for(let x=80;x<adv.worldWidth;x+=135){circle(x,365,5,"#ffdf71");circle(x+7,369,4,"#fff")}
+  character(adv.npc.x,adv.npc.y,"#e98db2",false);
+  adv.items.forEach(it=>{if(!it.got){ctx.save();ctx.shadowColor="#fff5a6";ctx.shadowBlur=18;ctx.font="42px serif";ctx.textAlign="center";ctx.fillText(it.emoji,it.x,it.y+Math.sin(adv.frame/12+it.x)*6);ctx.restore()}});
+  // Portal besar di hujung kawasan
+  ctx.fillStyle="#f6d76e";ctx.beginPath();ctx.ellipse(2020,318,44,75,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#8879d5";ctx.beginPath();ctx.ellipse(2020,318,29,60,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#fff";ctx.font="bold 17px Trebuchet MS";ctx.textAlign="center";ctx.fillText("PORTAL",2020,415);
+  character(adv.x,adv.y,characterData[data.character].shirt,true);
+  ctx.restore();
+  // Papan info atas
+  ctx.fillStyle="#ffffffdf";ctx.beginPath();ctx.roundRect(14,13,270,43,13);ctx.fill();
+  ctx.fillStyle="#244d68";ctx.font="bold 18px Trebuchet MS";ctx.textAlign="left";ctx.fillText(adventureWorlds[adv.world].name,28,41);
+  ctx.textAlign="right";ctx.fillText("⭐ "+adv.collected+"/3",W-22,41);
+  if(adv.keys.left){adv.x=Math.max(35,adv.x-(adv.vehicle?7:4));adv.dir=-1}
+  if(adv.keys.right){adv.x=Math.min(adv.worldWidth-45,adv.x+(adv.vehicle?7:4));adv.dir=1}
+  if(adv.jump){adv.jump+=.105;if(adv.jump>Math.PI)adv.jump=0}
+  adv.camera=Math.max(0,Math.min(adv.worldWidth-W,adv.x-W*.42));
+  adv.items.forEach(it=>{if(!it.got&&Math.hypot(adv.x-it.x,adv.y-it.y)<60){
+   it.got=true;adv.collected++;data.inventory.push(it.name);award(1);notify("Objek dikumpulkan: "+it.name+"!");
+   if(adv.collected>=3){data.missions.collect=true;updateQuest();speak("Bagus! Kamu sudah mengumpulkan tiga objek.");}
+   save();updateQuest();
+  }});
+  adv.frame++;requestAnimationFrame(draw);
+ }
+ requestAnimationFrame(draw);
+}
+
+
+function home(){
+ save();
+ $("#screen").innerHTML=`<section class="panel story-home">
+  <div class="hero-copy">
+   <div class="welcome-ribbon">✦ Selamat datang, ${data.name}! ✦</div>
+   <h1>JOM BACA!<br>ADVENTURE</h1>
+   <p class="hero-description">Sertai pengembaraan ajaib! Teroka dunia penuh warna, temui kawan baharu dan belajar membaca sambil bermain.</p>
+   <div class="hero-actions"><button class="btn blue" onclick="go('characters')">▶ MULA PENGEMBARAAN</button><button class="btn" onclick="go('map')">🗺 PETA DUNIA</button></div>
+  </div>
+  <div class="hero-illustration">
+<svg viewBox="0 0 700 620" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+ <defs>
+  <linearGradient id="hillA" x2="0" y2="1"><stop stop-color="#a8dc91"/><stop offset="1" stop-color="#63b86f"/></linearGradient>
+  <linearGradient id="castle" x2="0" y2="1"><stop stop-color="#f9d69a"/><stop offset="1" stop-color="#d99063"/></linearGradient>
+  <filter id="soft"><feGaussianBlur stdDeviation="5"/></filter>
+ </defs>
+ <ellipse cx="390" cy="550" rx="285" ry="24" fill="#3d795c" opacity=".2" filter="url(#soft)"/>
+ <path d="M0 390 Q120 270 240 370 T490 350 T720 380 V620 H0Z" fill="#9bd68d"/>
+ <path d="M0 455 Q145 340 285 430 T540 400 T720 440 V620 H0Z" fill="url(#hillA)"/>
+ <path d="M455 360 L455 200 L500 200 L500 165 L535 165 L535 205 L575 205 L575 360Z" fill="url(#castle)" stroke="#a8664c" stroke-width="7"/>
+ <path d="M440 205 L477 145 L515 205 M490 170 L518 115 L548 170 M550 210 L588 150 L615 210" fill="#b85d4d" stroke="#8c493d" stroke-width="6" stroke-linejoin="round"/>
+ <path d="M474 360 V290 Q515 235 557 290 V360" fill="#79513f"/>
+ <g fill="#fff1b9"><rect x="470" y="230" width="22" height="35" rx="10"/><rect x="540" y="230" width="22" height="35" rx="10"/></g>
+ <g stroke="#fff1b9" stroke-width="5" fill="none"><path d="M481 230v35m-11-17h22M551 230v35m-11-17h22"/></g>
+ <path d="M70 430 Q105 350 140 430" fill="none" stroke="#4e9e64" stroke-width="23" stroke-linecap="round"/>
+ <g><rect x="85" y="390" width="12" height="80" rx="5" fill="#875536"/><circle cx="89" cy="365" r="48" fill="#4f9e63"/><circle cx="55" cy="385" r="30" fill="#68b975"/><circle cx="120" cy="386" r="31" fill="#78c77b"/></g>
+ <g fill="#fff" opacity=".9"><ellipse cx="120" cy="100" rx="44" ry="18"/><circle cx="98" cy="89" r="22"/><circle cx="130" cy="82" r="26"/><ellipse cx="570" cy="75" rx="50" ry="18"/><circle cx="548" cy="63" r="22"/><circle cx="584" cy="58" r="25"/></g>
+ <path d="M70 250 Q200 20 380 215" fill="none" stroke="#f7a4a2" stroke-width="13" stroke-linecap="round" opacity=".9"/>
+ <path d="M83 252 Q205 42 370 219" fill="none" stroke="#f8d27b" stroke-width="13" stroke-linecap="round"/>
+ <path d="M96 255 Q210 65 359 223" fill="none" stroke="#8fcf9c" stroke-width="13" stroke-linecap="round"/>
+ <g transform="translate(265 390)">
+  <ellipse cx="0" cy="130" rx="120" ry="17" fill="#467d55" opacity=".25"/>
+  <g transform="translate(-72 0) scale(.95)"><path d="M-35 80 Q-35 34 0 30 Q35 34 35 80 L44 130 H-44Z" fill="#4c9ad1" stroke="#315a78" stroke-width="4"/><circle cy="8" r="36" fill="#f5c895" stroke="#a96f48" stroke-width="4"/><path d="M-37 5 Q-37 -42 0 -37 Q40 -35 38 5 Q15 -12 0 -10 Q-20 -13 -37 5" fill="#573b30"/><ellipse cx="-13" cy="12" rx="8" ry="10" fill="white"/><ellipse cx="13" cy="12" rx="8" ry="10" fill="white"/><circle cx="-11" cy="13" r="4" fill="#42352f"/><circle cx="15" cy="13" r="4" fill="#42352f"/><path d="M-10 29 Q0 40 12 28" fill="none" stroke="#a44e43" stroke-width="4" stroke-linecap="round"/></g>
+  <g transform="translate(5 5) scale(1.1)"><path d="M-35 80 Q-35 34 0 30 Q35 34 35 80 L44 130 H-44Z" fill="#e58eaa" stroke="#a75b75" stroke-width="4"/><circle cy="8" r="36" fill="#f5c895" stroke="#a96f48" stroke-width="4"/><path d="M-37 5 Q-37 -42 0 -37 Q40 -35 38 5 Q15 -12 0 -10 Q-20 -13 -37 5" fill="#8a4b35"/><circle cx="-13" cy="12" r="9" fill="white"/><circle cx="13" cy="12" r="9" fill="white"/><circle cx="-11" cy="13" r="4" fill="#42352f"/><circle cx="15" cy="13" r="4" fill="#42352f"/><path d="M-10 29 Q0 40 12 28" fill="none" stroke="#a44e43" stroke-width="4" stroke-linecap="round"/></g>
+  <g transform="translate(83 13) scale(.87)"><path d="M-35 80 Q-35 34 0 30 Q35 34 35 80 L44 130 H-44Z" fill="#77b66c" stroke="#477d4c" stroke-width="4"/><circle cy="8" r="36" fill="#f5c895" stroke="#a96f48" stroke-width="4"/><path d="M-37 5 Q-37 -42 0 -37 Q40 -35 38 5 Q15 -12 0 -10 Q-20 -13 -37 5" fill="#47352d"/><circle cx="-13" cy="12" r="9" fill="white"/><circle cx="13" cy="12" r="9" fill="white"/><circle cx="-11" cy="13" r="4" fill="#42352f"/><circle cx="15" cy="13" r="4" fill="#42352f"/><path d="M-10 29 Q0 40 12 28" fill="none" stroke="#a44e43" stroke-width="4" stroke-linecap="round"/></g>
+  <g transform="translate(125 86)"><circle r="31" fill="#fff"/><circle cx="-23" cy="-22" r="13" fill="#fff"/><circle cx="23" cy="-22" r="13" fill="#fff"/><circle cx="-9" cy="-4" r="4" fill="#42352f"/><circle cx="9" cy="-4" r="4" fill="#42352f"/><ellipse cy="9" rx="8" ry="6" fill="#f39aa6"/><path d="M-8 18 Q0 25 8 18" fill="none" stroke="#bd6875" stroke-width="3"/></g>
+ </g>
+ <g fill="#fff2a5"><path d="M350 90l7 17 18 7-18 7-7 18-7-18-18-7 18-7Z"/><path d="M630 280l5 12 13 5-13 5-5 13-5-13-13-5 13-5Z"/><path d="M190 300l4 10 11 4-11 4-4 11-4-11-11-4 11-4Z"/></g>
+</svg></div>
+  <span class="sparkle" style="top:13%;left:52%">✦</span><span class="sparkle" style="top:28%;right:8%">✧</span>
+  <div class="menu-plank">
+   <button class="btn" onclick="go('profile')"><span>👤</span>PROFIL</button>
+   <button class="btn" onclick="go('activities')"><span>📚</span>JOM BACA!</button>
+   <button class="btn" onclick="go('collection')"><span>🎒</span>KOLEKSI</button>
+   <button class="btn" onclick="go('shop')"><span>🛍️</span>KEDAI</button>
+   <button class="btn" onclick="go('achievements')"><span>🏆</span>PENCAPAIAN</button>
+   <button class="btn" onclick="go('certificate')"><span>📜</span>SIJIL</button>
+   <button class="btn" onclick="go('settings')"><span>⚙️</span>TETAPAN</button>
+   <button class="btn" onclick="go('map')"><span>🧭</span>JELAJAH</button>
+  </div>
+ </section>`;
+}
+function characters(){
+ $("#screen").innerHTML=shell("PILIH WATAK KAMU",`<p class="sub">Pilih rakan pengembaraan yang akan menemani kamu.</p>
+ <div class="cards">${characterData.map((c,i)=>`<div class="character-card">${mascot(i)}<h3>${c.name}</h3><span class="role-tag">${c.role}</span><p class="small">${c.desc}</p><button class="btn ${data.character===i?'green':'blue'}" onclick="data.character=${i};save();characters()">${data.character===i?'✓ Dipilih':'Pilih watak'}</button></div>`).join("")}</div>
+ <div style="text-align:center;margin-top:20px"><button class="btn green" onclick="go('map')">Teruskan pengembaraan →</button></div>`);
+}
+function map(){
+ $("#screen").innerHTML=shell("PETA DUNIA",`<p class="sub">Teroka pulau ajaib dan buka kawasan baharu dengan menyelesaikan misi membaca.</p>
+ <div class="map-board"><div class="world-grid">${worlds.map((w,i)=>`<button class="world ${i>=data.unlocked?'locked':''}" onclick="${i<data.unlocked?`go('explore')`:`lockedWorld()`}"><div style="font-size:35px">${w[0]}</div><strong>${w[1]}</strong><div class="small">${i<data.unlocked?'✦ Boleh diterokai':'🔒 Belum dibuka'}</div></button>`).join("")}</div></div>
+ <div class="note" style="margin-top:16px">⭐ Bintang terkumpul: ${data.stars} &nbsp; · &nbsp; Misi selesai: ${data.done.length}</div>`);
+}
+function activities(){
+ $("#screen").innerHTML=shell("PUSAT AKTIVITI JOM BACA!",`<p class="sub">Pilih permainan kegemaran dan kumpulkan bintang sambil belajar.</p>
+ <div class="note" style="margin-bottom:16px">📚 <b>Bank perkataan diperluas:</b> 85 perkataan KV+KV. Contoh: baju, batu, bola, budi, cari, cuci, gigi, gula, jari, jaga, kaki, lagu, lari, madu, nasi, naga, padi, paku, raja, roda, rusa, satu, sate, sapu, tali, tisu, tiga dan topi. Setiap pusingan memilih 10 perkataan secara rawak supaya latihan tidak berulang dengan set yang sama.</div>
+ <div class="cards">${activitiesList.map((a,i)=>`<div class="activity-card"><div class="activity-art">${a[0]}</div><h3>${a[1]}</h3><button class="btn blue" onclick="startGame('${a[2]}')">Mula bermain ↗</button></div>`).join("")}</div>`);
+}
+
+home();
+</script>
+</body>
+</html>
